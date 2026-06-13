@@ -1,51 +1,52 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { Shell } from "./components/layout/Shell";
+import { FeaturesScreen } from "./screens/features/FeaturesScreen";
+import { NewFeatureScreen } from "./screens/features/NewFeatureScreen";
+import { ReposScreen } from "./screens/repos/ReposScreen";
+import { TicketsScreen } from "./screens/tickets/TicketsScreen";
+import { SettingsScreen } from "./screens/settings/SettingsScreen";
+import { useAppStore } from "./store/app.store";
+import type { ContextualConfig } from "@contextual/types";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+const mockConfig: ContextualConfig = {
+  name: "my-org",
+  repos: [
+    { name: "frontend", path: "/dev/my-org/repos/frontend", defaultBranch: "main" },
+    { name: "backend", path: "/dev/my-org/repos/backend", defaultBranch: "main" },
+  ],
+  integrations: {},
+  mcp: { servers: [] },
+  preferences: {
+    ide: { type: "cursor" },
+    shell: "zsh",
+    theme: "dark",
+  },
+};
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+export default function App() {
+  const { state } = useAppStore();
+  const config = state.config ?? mockConfig;
+  const features = state.features;
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    <MemoryRouter>
+      <Routes>
+        <Route element={<Shell config={config} features={features} />}>
+          <Route index element={<FeaturesScreen features={features} />} />
+          <Route path="repos" element={<ReposScreen repos={config.repos} />} />
+          <Route path="tickets" element={<TicketsScreen />} />
+          <Route path="settings" element={<SettingsScreen config={config} />} />
+          <Route
+            path="new"
+            element={
+              <>
+                <FeaturesScreen features={features} />
+                <NewFeatureScreen />
+              </>
+            }
+          />
+        </Route>
+      </Routes>
+    </MemoryRouter>
   );
 }
-
-export default App;
