@@ -9,5 +9,9 @@
   },
   "dependencies": {
     "@contextual/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "typescript": "~5.8.3"
   }
 }
