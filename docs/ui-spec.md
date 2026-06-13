@@ -184,21 +184,23 @@ Slides in from the right over the main content, without navigating away.
 
 ### 4. New Feature Flow
 
-Triggered by `+ New Feature` in sidebar or board. Opens a modal.
+Triggered by `+ New Feature` in sidebar or board. Opens a modal with two paths.
+
+#### Path A — Pick an existing ticket (Linear connected)
+
+Linear search is live — results update as the user types. No need to open Linear.
 
 ```
 ┌──────────────────────────────────────────────┐
 │ New Feature                              [×] │
 ├──────────────────────────────────────────────┤
-│ Source                                       │
-│ ○ Pick a Linear ticket                       │
-│ ○ Create locally                             │
+│ [  Pick existing ticket  ] [ Create new ]    │  ← tab toggle
 ├──────────────────────────────────────────────┤
-│ [ Search tickets...                      ]   │
+│ 🔍 [ Search Linear tickets...            ]   │  ← live search, auto-focus
 │                                              │
-│ PROJ-142  User Authentication                │
-│ PROJ-143  Password Reset                     │
-│ PROJ-144  OAuth Google                       │
+│ ● PROJ-142  User Authentication              │
+│ ● PROJ-143  Password Reset                   │
+│ ● PROJ-144  OAuth Google                     │
 │                                              │
 ├──────────────────────────────────────────────┤
 │ Repos to include                             │
@@ -210,9 +212,58 @@ Triggered by `+ New Feature` in sidebar or board. Opens a modal.
 └──────────────────────────────────────────────┘
 ```
 
-- Toggle between Linear ticket or local (folder + markdown, no ticketing system needed)
-- Repo selection defaults to all repos, user unchecks what's not needed
-- On confirm: folder created, worktrees checked out, context.md + CLAUDE.md generated, Claude Code session optionally auto-started
+#### Path B — Create a new ticket
+
+If Linear is connected, the ticket is created in Linear and locally.
+If no integration is connected, it's created as local markdown files only.
+
+```
+┌──────────────────────────────────────────────┐
+│ New Feature                              [×] │
+├──────────────────────────────────────────────┤
+│ [  Pick existing ticket  ] [ Create new ]    │  ← tab toggle
+├──────────────────────────────────────────────┤
+│ Title                                        │
+│ [ User Authentication                    ]   │
+│                                              │
+│ Description                                  │
+│ [ Implement JWT-based auth with refresh  ]   │
+│ [ tokens. Session expiry TBD.            ]   │
+│                                              │
+│ ┌─ Linear connected ──────────────────────┐  │
+│ │ ✓ Will also create this ticket in Linear│  │
+│ │   Project   [ Backend ▾ ]               │  │
+│ │   Assignee  [ Fareed ▾  ]               │  │
+│ │   Priority  [ Medium ▾  ]               │  │
+│ └─────────────────────────────────────────┘  │
+│                                              │
+│ Repos to include                             │
+│ ☑ frontend                                   │
+│ ☑ backend                                    │
+│ ☐ infra                                      │
+├──────────────────────────────────────────────┤
+│              [Cancel]  [Create Workspace →]  │
+└──────────────────────────────────────────────┘
+```
+
+If Linear is **not** connected, the Linear block is replaced with:
+```
+│ ┌─ Local only ────────────────────────────┐  │
+│ │ Ticket will be saved as a local         │  │
+│ │ markdown file in the feature folder.    │  │
+│ │ Connect Linear in Settings to sync.     │  │
+│ └─────────────────────────────────────────┘  │
+```
+
+#### Behaviour on "Create Workspace →"
+
+1. Feature folder is created and named after the ticket (`PROJ-142-user-auth/`)
+2. Git worktrees are checked out for each selected repo
+3. `context.md` is generated from ticket data (title, description, links)
+4. `CLAUDE.md` is generated with feature-scoped AI instructions
+5. Feature card appears on the board with status `○ Not started`
+6. **No Claude Code session is started automatically** — the user may still want to add more context, links, or notes before work begins
+7. The feature card shows a prominent `[▶ Start Session]` button to kick off work when ready
 
 ---
 
