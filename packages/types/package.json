@@ -1,0 +1,10 @@
+{
+  "name": "@contextual/types",
+  "version": "0.1.0",
+  "description": "Shared TypeScript types for Contextual",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

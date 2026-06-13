@@ -1,0 +1,13 @@
+{
+  "name": "@contextual/mcp",
+  "version": "0.1.0",
+  "description": "MCP server configs and helpers for Contextual integrations",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@contextual/types": "workspace:*"
+  }
+}

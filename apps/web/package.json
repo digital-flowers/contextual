@@ -1,0 +1,12 @@
+{
+  "name": "@contextual/web",
+  "version": "0.1.0",
+  "description": "Contextual website and docs",
+  "scripts": {
+    "dev": "echo \"web app coming soon\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@contextual/types": "workspace:*"
+  }
+}

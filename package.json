@@ -1,0 +1,21 @@
+{
+  "name": "contextual",
+  "version": "0.1.0",
+  "description": "The Developer's New Home — A Contextual Development Environment (CDE)",
+  "private": true,
+  "scripts": {
+    "dev:desktop": "pnpm --filter @contextual/desktop dev",
+    "build:desktop": "pnpm --filter @contextual/desktop build",
+    "dev:web": "pnpm --filter @contextual/web dev",
+    "build": "pnpm --filter './packages/*' build && pnpm --filter './apps/*' build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.6.0",
+      "onFail": "download"
+    }
+  }
+}

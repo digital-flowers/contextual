@@ -1,0 +1,13 @@
+{
+  "name": "@contextual/core",
+  "version": "0.1.0",
+  "description": "Core logic: workspace management, worktree ops, config read/write",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@contextual/types": "workspace:*"
+  }
+}

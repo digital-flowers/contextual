@@ -1,0 +1,12 @@
+{
+  "name": "@contextual/cli",
+  "version": "0.1.0",
+  "description": "Contextual CLI",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@contextual/core": "workspace:*",
+    "@contextual/types": "workspace:*"
+  }
+}
