@@ -73,6 +73,7 @@ export default function App() {
               <FeaturesScreen
                 features={features}
                 shell={config.preferences.shell}
+                ide={config.preferences.ide}
                 onFeatureUpdate={upsertFeature}
               />
             }
@@ -87,6 +88,7 @@ export default function App() {
                 <FeaturesScreen
                   features={features}
                   shell={config.preferences.shell}
+                  ide={config.preferences.ide}
                   onFeatureUpdate={upsertFeature}
                 />
                 <NewFeatureScreen

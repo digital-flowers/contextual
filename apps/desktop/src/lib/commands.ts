@@ -7,6 +7,10 @@ import type {
   Worktree,
 } from "@contextual/types";
 
+// IDE
+export const openInIde = (path: string, ideType: string, customPath?: string): Promise<void> =>
+  invoke("open_in_ide", { path, ideType, customPath });
+
 // Session
 export const startSession = (featureId: string, cwd: string, shell: string): Promise<void> =>
   invoke("start_session", { featureId, cwd, shell });

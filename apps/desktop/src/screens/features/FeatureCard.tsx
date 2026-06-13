@@ -9,7 +9,7 @@ import {
   Archive,
 } from "lucide-react";
 import clsx from "clsx";
-import type { Feature } from "@contextual/types";
+import type { Feature, IDEConfig } from "@contextual/types";
 import { Button } from "../../components/ui/Button";
 import { Terminal } from "../../components/terminal/Terminal";
 import { FeatureStatusBadge } from "./FeatureStatusBadge";
@@ -18,10 +18,11 @@ import * as commands from "../../lib/commands";
 interface FeatureCardProps {
   feature: Feature;
   shell: string;
+  ide: IDEConfig;
   onStatusChange: (feature: Feature) => void;
 }
 
-export function FeatureCard({ feature, shell, onStatusChange }: FeatureCardProps) {
+export function FeatureCard({ feature, shell, ide, onStatusChange }: FeatureCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [sessionRunning, setSessionRunning] = useState(false);
   const [waitingForInput, setWaitingForInput] = useState(false);
@@ -115,7 +116,15 @@ export function FeatureCard({ feature, shell, onStatusChange }: FeatureCardProps
 
       {/* Actions row */}
       <div className="flex items-center gap-2 px-4 pb-3">
-        <Button size="sm" variant="ghost">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() =>
+            commands
+              .openInIde(feature.folderPath, ide.type, ide.customPath)
+              .catch(console.error)
+          }
+        >
           <FolderOpen size={12} />
           Open IDE
         </Button>

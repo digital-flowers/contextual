@@ -25,6 +25,7 @@ pub struct Preferences {
     pub theme: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LinearIntegration {

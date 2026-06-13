@@ -2,7 +2,7 @@ mod commands;
 mod error;
 mod types;
 
-use commands::{config::*, git::*, session::*, workspace::*};
+use commands::{config::*, git::*, ide::*, session::*, workspace::*};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -25,6 +25,8 @@ pub fn run() {
             list_features,
             update_feature_status,
             add_feature_note,
+            // ide
+            open_in_ide,
             // session
             start_session,
             write_to_session,

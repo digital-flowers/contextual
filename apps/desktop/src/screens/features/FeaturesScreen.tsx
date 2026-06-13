@@ -1,16 +1,17 @@
 import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { Feature } from "@contextual/types";
+import type { Feature, IDEConfig } from "@contextual/types";
 import { Button } from "../../components/ui/Button";
 import { FeatureCard } from "./FeatureCard";
 
 interface FeaturesScreenProps {
   features: Feature[];
   shell: string;
+  ide: IDEConfig;
   onFeatureUpdate: (feature: Feature) => void;
 }
 
-export function FeaturesScreen({ features, shell, onFeatureUpdate }: FeaturesScreenProps) {
+export function FeaturesScreen({ features, shell, ide, onFeatureUpdate }: FeaturesScreenProps) {
   const active = features.filter((f) => f.status !== "archived");
 
   return (
@@ -42,6 +43,7 @@ export function FeaturesScreen({ features, shell, onFeatureUpdate }: FeaturesScr
               key={f.id}
               feature={f}
               shell={shell}
+              ide={ide}
               onStatusChange={onFeatureUpdate}
             />
           ))}
