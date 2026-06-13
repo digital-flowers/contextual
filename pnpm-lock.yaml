@@ -268,7 +268,11 @@ importers:
         specifier: workspace:*
         version: link:../types
 
-  packages/types: {}
+  packages/types:
+    devDependencies:
+      typescript:
+        specifier: ~5.8.3
+        version: 5.8.3
 
 packages:
 
