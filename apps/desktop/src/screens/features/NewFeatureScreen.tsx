@@ -2,13 +2,62 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Search } from "lucide-react";
 import { Button } from "../../components/ui/Button";
+import * as commands from "../../lib/commands";
+import type { Feature, RepoConfig, Ticket } from "@contextual/types";
 
 type Tab = "pick" | "create";
 
-export function NewFeatureScreen() {
+interface NewFeatureScreenProps {
+  orgRoot: string;
+  repos: RepoConfig[];
+  hasLinear: boolean;
+  onCreated: (feature: Feature) => void;
+}
+
+export function NewFeatureScreen({ orgRoot, repos, hasLinear, onCreated }: NewFeatureScreenProps) {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>("pick");
+  const [tab, setTab] = useState<Tab>(hasLinear ? "pick" : "create");
   const [search, setSearch] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedRepos, setSelectedRepos] = useState<Set<string>>(
+    new Set(repos.map((r) => r.name))
+  );
+  const [loading, setLoading] = useState(false);
+
+  function toggleRepo(name: string) {
+    setSelectedRepos((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  }
+
+  async function handleCreate() {
+    if (!title.trim()) return;
+    setLoading(true);
+    try {
+      const now = new Date().toISOString();
+      const ticket: Ticket = {
+        id: `LOCAL-${Date.now()}`,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        source: "local",
+        priority: "none",
+        links: [],
+        createdAt: now,
+        updatedAt: now,
+      };
+      const chosenRepos = repos.filter((r) => selectedRepos.has(r.name));
+      const feature = await commands.createFeature(orgRoot, ticket, chosenRepos);
+      onCreated(feature);
+      navigate("/");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const canSubmit = tab === "create" ? title.trim().length > 0 : false;
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
@@ -50,15 +99,21 @@ export function NewFeatureScreen() {
                 <input
                   autoFocus
                   type="text"
-                  placeholder="Search tickets..."
+                  placeholder="Search Linear tickets…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="flex-1 bg-transparent text-sm text-text placeholder:text-muted outline-none"
                 />
               </div>
-              <p className="text-xs text-muted text-center py-6">
-                Connect Linear in Settings to search tickets.
-              </p>
+              {hasLinear ? (
+                <p className="text-xs text-muted text-center py-6">
+                  Linear integration coming soon.
+                </p>
+              ) : (
+                <p className="text-xs text-muted text-center py-6">
+                  Connect Linear in Settings to search tickets.
+                </p>
+              )}
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -68,6 +123,8 @@ export function NewFeatureScreen() {
                   autoFocus
                   type="text"
                   placeholder="e.g. User Authentication"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-border bg-bg text-sm text-text placeholder:text-muted outline-none focus:border-accent/50"
                 />
               </div>
@@ -76,29 +133,56 @@ export function NewFeatureScreen() {
                 <textarea
                   rows={3}
                   placeholder="What needs to be done?"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-border bg-bg text-sm text-text placeholder:text-muted outline-none focus:border-accent/50 resize-none"
                 />
               </div>
               <div className="rounded-lg border border-border/50 bg-bg/50 px-3 py-2.5 text-xs text-muted">
-                Ticket will be saved as a local markdown file.<br />
-                Connect Linear in Settings to sync tickets.
+                {hasLinear
+                  ? "✓ Ticket will also be created in Linear."
+                  : "Ticket will be saved locally. Connect Linear in Settings to sync."}
               </div>
             </div>
           )}
 
           {/* Repos */}
-          <div className="mt-4">
-            <label className="text-xs text-muted mb-1.5 block">Repos to include</label>
-            <p className="text-xs text-muted">
-              No repos connected yet. Add repos in the Repos screen.
-            </p>
-          </div>
+          {repos.length > 0 && (
+            <div className="mt-4">
+              <label className="text-xs text-muted mb-2 block">Repos to include</label>
+              <div className="flex flex-col gap-1.5">
+                {repos.map((repo) => (
+                  <label
+                    key={repo.name}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-border hover:bg-surface cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedRepos.has(repo.name)}
+                      onChange={() => toggleRepo(repo.name)}
+                      className="accent-accent"
+                    />
+                    <span className="text-sm text-text font-mono">{repo.name}</span>
+                    <span className="text-xs text-muted ml-auto truncate max-w-32">{repo.path}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-border">
-          <Button variant="ghost" onClick={() => navigate(-1)}>Cancel</Button>
-          <Button variant="primary">Create Workspace →</Button>
+          <Button variant="ghost" onClick={() => navigate(-1)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            disabled={!canSubmit || loading}
+            onClick={handleCreate}
+          >
+            {loading ? "Creating…" : "Create Workspace →"}
+          </Button>
         </div>
       </div>
     </div>
