@@ -7,6 +7,22 @@ import type {
   Worktree,
 } from "@contextual/types";
 
+// Session
+export const startSession = (featureId: string, cwd: string, shell: string): Promise<void> =>
+  invoke("start_session", { featureId, cwd, shell });
+
+export const writeToSession = (featureId: string, data: string): Promise<void> =>
+  invoke("write_to_session", { featureId, data });
+
+export const resizeSession = (featureId: string, cols: number, rows: number): Promise<void> =>
+  invoke("resize_session", { featureId, cols, rows });
+
+export const stopSession = (featureId: string): Promise<void> =>
+  invoke("stop_session", { featureId });
+
+export const sessionIsRunning = (featureId: string): Promise<boolean> =>
+  invoke("session_is_running", { featureId });
+
 // Config
 export const configExists = (orgRoot: string): Promise<boolean> =>
   invoke("config_exists", { orgRoot });

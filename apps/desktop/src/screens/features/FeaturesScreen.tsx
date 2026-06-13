@@ -6,9 +6,11 @@ import { FeatureCard } from "./FeatureCard";
 
 interface FeaturesScreenProps {
   features: Feature[];
+  shell: string;
+  onFeatureUpdate: (feature: Feature) => void;
 }
 
-export function FeaturesScreen({ features }: FeaturesScreenProps) {
+export function FeaturesScreen({ features, shell, onFeatureUpdate }: FeaturesScreenProps) {
   const active = features.filter((f) => f.status !== "archived");
 
   return (
@@ -36,7 +38,12 @@ export function FeaturesScreen({ features }: FeaturesScreenProps) {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
           {active.map((f) => (
-            <FeatureCard key={f.id} feature={f} />
+            <FeatureCard
+              key={f.id}
+              feature={f}
+              shell={shell}
+              onStatusChange={onFeatureUpdate}
+            />
           ))}
         </div>
       )}

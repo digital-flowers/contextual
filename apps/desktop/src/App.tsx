@@ -67,7 +67,16 @@ export default function App() {
     <MemoryRouter>
       <Routes>
         <Route element={<Shell config={config} features={features} />}>
-          <Route index element={<FeaturesScreen features={features} />} />
+          <Route
+            index
+            element={
+              <FeaturesScreen
+                features={features}
+                shell={config.preferences.shell}
+                onFeatureUpdate={upsertFeature}
+              />
+            }
+          />
           <Route path="repos" element={<ReposScreen repos={config.repos} />} />
           <Route path="tickets" element={<TicketsScreen />} />
           <Route path="settings" element={<SettingsScreen config={config} />} />
@@ -75,7 +84,11 @@ export default function App() {
             path="new"
             element={
               <>
-                <FeaturesScreen features={features} />
+                <FeaturesScreen
+                  features={features}
+                  shell={config.preferences.shell}
+                  onFeatureUpdate={upsertFeature}
+                />
                 <NewFeatureScreen
                   orgRoot={orgRoot!}
                   repos={config.repos}
