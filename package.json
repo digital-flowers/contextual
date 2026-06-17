@@ -4,6 +4,7 @@
   "description": "The Developer's New Home — A Contextual Development Environment (CDE)",
   "private": true,
   "scripts": {
+    "dev": "pnpm --filter @contextual/desktop tauri dev",
     "dev:desktop": "pnpm --filter @contextual/desktop dev",
     "build:desktop": "pnpm --filter @contextual/desktop build",
     "dev:web": "pnpm --filter @contextual/web dev",

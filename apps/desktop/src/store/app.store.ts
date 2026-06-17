@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
-import type { Feature, ContextualConfig } from "@contextual/types";
+import type { Task, ContextualConfig } from "@contextual/types";
 import * as commands from "../lib/commands";
 
 export interface AppState {
   config: ContextualConfig | null;
   orgRoot: string | null;
-  features: Feature[];
+  tasks: Task[];
   loading: boolean;
   error: string | null;
 }
@@ -14,7 +14,7 @@ export function useAppStore() {
   const [state, setState] = useState<AppState>({
     config: null,
     orgRoot: null,
-    features: [],
+    tasks: [],
     loading: false,
     error: null,
   });
@@ -27,11 +27,11 @@ export function useAppStore() {
         setState((s) => ({ ...s, loading: false, orgRoot }));
         return { needsSetup: true };
       }
-      const [config, features] = await Promise.all([
+      const [config, tasks] = await Promise.all([
         commands.readConfig(orgRoot),
-        commands.listFeatures(orgRoot),
+        commands.listTasks(orgRoot),
       ]);
-      setState((s) => ({ ...s, config, orgRoot, features, loading: false }));
+      setState((s) => ({ ...s, config, orgRoot, tasks, loading: false }));
       return { needsSetup: false };
     } catch (e) {
       setState((s) => ({ ...s, loading: false, error: String(e) }));
@@ -45,18 +45,25 @@ export function useAppStore() {
     setState((s) => ({ ...s, config }));
   }, [state.orgRoot]);
 
-  const refreshFeatures = useCallback(async () => {
+  const refreshTasks = useCallback(async () => {
     if (!state.orgRoot) return;
-    const features = await commands.listFeatures(state.orgRoot);
-    setState((s) => ({ ...s, features }));
+    const tasks = await commands.listTasks(state.orgRoot);
+    setState((s) => ({ ...s, tasks }));
   }, [state.orgRoot]);
 
-  const upsertFeature = useCallback((feature: Feature) => {
+  const upsertTask = useCallback((task: Task) => {
     setState((s) => ({
       ...s,
-      features: s.features.some((f) => f.id === feature.id)
-        ? s.features.map((f) => (f.id === feature.id ? feature : f))
-        : [feature, ...s.features],
+      tasks: s.tasks.some((t) => t.id === task.id)
+        ? s.tasks.map((t) => (t.id === task.id ? task : t))
+        : [task, ...s.tasks],
+    }));
+  }, []);
+
+  const removeTask = useCallback((taskId: string) => {
+    setState((s) => ({
+      ...s,
+      tasks: s.tasks.filter((t) => t.id !== taskId),
     }));
   }, []);
 
@@ -64,7 +71,8 @@ export function useAppStore() {
     state,
     loadOrg,
     saveConfig,
-    refreshFeatures,
-    upsertFeature,
+    refreshTasks,
+    upsertTask,
+    removeTask,
   };
 }

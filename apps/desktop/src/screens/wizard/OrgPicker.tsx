@@ -34,7 +34,7 @@ export function OrgPicker({ onSelect }: OrgPickerProps) {
       <div className="max-w-sm">
         <p className="text-sm text-muted">
           Select the root folder of your organization or project.
-          This is where Contextual will store your features and config.
+          This is where Contextual will store your tasks and config.
         </p>
       </div>
 

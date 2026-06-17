@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { GitFork, Trash2, Plus } from "lucide-react";
+import { GitFork, Trash2, Plus, FolderOpen } from "lucide-react";
 import { WizardStep } from "./WizardStep";
 import type { ContextualConfig, RepoConfig } from "@contextual/types";
 
@@ -16,10 +16,11 @@ type IDEValue = typeof IDES[number]["value"];
 
 interface WizardProps {
   orgRoot: string;
+  onChangeOrg: (path: string) => void;
   onComplete: (config: ContextualConfig) => void;
 }
 
-export function Wizard({ orgRoot, onComplete }: WizardProps) {
+export function Wizard({ orgRoot, onChangeOrg, onComplete }: WizardProps) {
   const orgName = orgRoot.split("/").filter(Boolean).at(-1) ?? "my-org";
 
   const [step, setStep] = useState(1);
@@ -28,6 +29,11 @@ export function Wizard({ orgRoot, onComplete }: WizardProps) {
   const [customIdePath, setCustomIdePath] = useState("");
   const [linearApiKey, setLinearApiKey] = useState("");
   const [useLinear, setUseLinear] = useState(false);
+
+  async function changeOrg() {
+    const selected = await open({ directory: true, multiple: false, title: "Select your organization folder" });
+    if (selected) onChangeOrg(selected as string);
+  }
 
   async function pickRepo() {
     const selected = await open({ directory: true, multiple: false, title: "Select repository" });
@@ -74,8 +80,15 @@ export function Wizard({ orgRoot, onComplete }: WizardProps) {
         <p className="text-sm text-muted max-w-sm">
           Let's set up your workspace in 3 steps. You can change everything later in Settings.
         </p>
-        <div className="text-xs text-border bg-surface border border-border rounded-lg px-4 py-2 font-mono">
-          {orgRoot}
+        <div className="flex items-center gap-2 bg-surface border border-border rounded-lg px-4 py-2">
+          <span className="text-xs text-muted font-mono truncate max-w-64">{orgRoot}</span>
+          <button
+            onClick={changeOrg}
+            className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors shrink-0 ml-2"
+          >
+            <FolderOpen size={12} />
+            Change
+          </button>
         </div>
         <button
           onClick={() => setStep(2)}
@@ -94,7 +107,7 @@ export function Wizard({ orgRoot, onComplete }: WizardProps) {
         step={1}
         total={3}
         title="Your Repositories"
-        description="Add the repos you work with. Contextual will create worktrees from these for each feature."
+        description="Add the repos you work with. Contextual will create worktrees from these for each task."
         onNext={() => setStep(3)}
         nextLabel="Next →"
       >
@@ -143,7 +156,7 @@ export function Wizard({ orgRoot, onComplete }: WizardProps) {
         step={2}
         total={3}
         title="Preferred IDE"
-        description="Contextual will open feature folders in this editor."
+        description="Contextual will open task folders in this editor."
         onBack={() => setStep(2)}
         onNext={() => setStep(4)}
         nextLabel="Next →"
@@ -219,7 +232,7 @@ export function Wizard({ orgRoot, onComplete }: WizardProps) {
           <div>
             <p className="text-sm font-medium text-text">Linear</p>
             <p className="text-xs text-muted mt-0.5">
-              Browse tickets, create features directly from Linear issues.
+              Browse tickets, create tasks directly from Linear issues.
             </p>
           </div>
         </button>

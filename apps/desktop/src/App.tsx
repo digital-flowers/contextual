@@ -1,29 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { Shell } from "./components/layout/Shell";
-import { FeaturesScreen } from "./screens/features/FeaturesScreen";
-import { NewFeatureScreen } from "./screens/features/NewFeatureScreen";
-import { ReposScreen } from "./screens/repos/ReposScreen";
-import { TicketsScreen } from "./screens/tickets/TicketsScreen";
-import { SettingsScreen } from "./screens/settings/SettingsScreen";
+import { TaskScreen } from "./screens/tasks/TaskScreen";
+import { NewTaskScreen } from "./screens/tasks/NewTaskScreen";
 import { OrgPicker } from "./screens/wizard/OrgPicker";
 import { Wizard } from "./screens/wizard/Wizard";
 import { useAppStore } from "./store/app.store";
 import * as commands from "./lib/commands";
 import type { ContextualConfig } from "@contextual/types";
 
+const LAST_ORG_KEY = "contextual:lastOrgRoot";
+
 type AppView = "loading" | "org-picker" | "wizard" | "app";
 
 export default function App() {
-  const { state, loadOrg, saveConfig, upsertFeature } = useAppStore();
-  const [view, setView] = useState<AppView>("org-picker");
+  const { state, loadOrg, saveConfig, upsertTask, removeTask } = useAppStore();
+  const [view, setView] = useState<AppView>(() =>
+    localStorage.getItem(LAST_ORG_KEY) ? "loading" : "org-picker"
+  );
   const [orgRoot, setOrgRoot] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(LAST_ORG_KEY);
+    if (saved) handleOrgSelected(saved);
+  }, []);
 
   async function handleOrgSelected(path: string) {
     setOrgRoot(path);
     setView("loading");
     const result = await loadOrg(path);
-    setView(result.needsSetup ? "wizard" : "app");
+    if (result.needsSetup) {
+      setView("wizard");
+    } else {
+      localStorage.setItem(LAST_ORG_KEY, path);
+      setView("app");
+    }
   }
 
   async function handleWizardComplete(config: ContextualConfig) {
@@ -31,6 +42,7 @@ export default function App() {
     await commands.createDefaultConfig(orgRoot, config.name);
     await saveConfig(config);
     await loadOrg(orgRoot);
+    localStorage.setItem(LAST_ORG_KEY, orgRoot);
     setView("app");
   }
 
@@ -54,50 +66,51 @@ export default function App() {
     return (
       <div className="h-full bg-bg flex items-center justify-center p-8">
         <div className="w-full max-w-md h-full max-h-[600px] flex flex-col">
-          <Wizard orgRoot={orgRoot!} onComplete={handleWizardComplete} />
+          <Wizard
+            orgRoot={orgRoot!}
+            onChangeOrg={handleOrgSelected}
+            onComplete={handleWizardComplete}
+          />
         </div>
       </div>
     );
   }
 
-  const { config, features } = state;
+  const { config, tasks } = state;
   if (!config) return null;
 
   return (
     <MemoryRouter>
       <Routes>
-        <Route element={<Shell config={config} features={features} />}>
+        <Route element={<Shell config={config} tasks={tasks} />}>
           <Route
             index
             element={
-              <FeaturesScreen
-                features={features}
-                shell={config.preferences.shell}
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted text-sm">Select a task from the sidebar.</p>
+              </div>
+            }
+          />
+          <Route
+            path="tasks/:id"
+            element={
+              <TaskScreen
+                tasks={tasks}
                 ide={config.preferences.ide}
-                onFeatureUpdate={upsertFeature}
+                onTaskUpdate={upsertTask}
+                onTaskDelete={removeTask}
               />
             }
           />
-          <Route path="repos" element={<ReposScreen repos={config.repos} />} />
-          <Route path="tickets" element={<TicketsScreen />} />
-          <Route path="settings" element={<SettingsScreen config={config} />} />
           <Route
             path="new"
             element={
-              <>
-                <FeaturesScreen
-                  features={features}
-                  shell={config.preferences.shell}
-                  ide={config.preferences.ide}
-                  onFeatureUpdate={upsertFeature}
-                />
-                <NewFeatureScreen
-                  orgRoot={orgRoot!}
-                  repos={config.repos}
-                  hasLinear={!!config.integrations.linear}
-                  onCreated={upsertFeature}
-                />
-              </>
+              <NewTaskScreen
+                orgRoot={orgRoot!}
+                repos={config.repos}
+                hasLinear={!!config.integrations.linear}
+                onCreated={upsertTask}
+              />
             }
           />
         </Route>

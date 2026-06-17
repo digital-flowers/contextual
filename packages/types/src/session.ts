@@ -7,7 +7,7 @@ export type SessionStatus =
 
 export interface Session {
   id: string;
-  featureId: string;
+  taskId: string;
   pid?: number;
   status: SessionStatus;
   startedAt: string;
