@@ -39,7 +39,7 @@ function TreeNode({
   selectedPath?: string;
   onSelect: (node: FileNode) => void;
 }) {
-  const [open, setOpen] = useState(depth < 1);
+  const [open, setOpen] = useState(false);
   const isSelected = selectedPath === node.path;
 
   return (

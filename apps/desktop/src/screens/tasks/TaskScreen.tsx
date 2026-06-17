@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FolderOpen, Play, Square, Archive, ArchiveRestore, Trash2, Terminal } from "lucide-react";
+import { Play, Square, Archive, ArchiveRestore, Trash2, Terminal } from "lucide-react";
 import type { Task, Resource, IDEConfig } from "@contextual/types";
 import { Button } from "../../components/ui/Button";
 import { TaskStatusBadge } from "./TaskStatusBadge";
@@ -108,15 +108,6 @@ export function TaskScreen({ tasks, ide, onTaskUpdate, onTaskDelete }: TaskScree
         <div className="flex items-center gap-2 mt-4">
           {!isArchived && (
             <>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => commands.openInIde(task.folderPath, ide.type, ide.customPath).catch(console.error)}
-              >
-                <FolderOpen size={12} />
-                Open IDE
-              </Button>
-
               {isRunning ? (
                 <>
                   <Button

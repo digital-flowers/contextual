@@ -6,6 +6,9 @@ import { Button } from "../../../components/ui/Button";
 import * as commands from "../../../lib/commands";
 import { RESOURCE_META } from "./resourceMeta";
 import type { Selection } from "./ResourcePanel";
+import { MarkdownView } from "./viewers/MarkdownView";
+import { JsonView } from "./viewers/JsonView";
+import { CodeView } from "./viewers/CodeView";
 
 interface PreviewPaneProps {
   selection?: Selection;
@@ -140,10 +143,12 @@ function FilePreviewView({ title, path, ide, onRemove }: { title: string; path: 
               Binary file ({formatBytes(preview.size)}) — can't preview. Use the actions above to open it.
             </p>
           </div>
+        ) : preview.kind === "markdown" ? (
+          <MarkdownView source={preview.content} />
+        ) : path.toLowerCase().endsWith(".json") ? (
+          <JsonView source={preview.content} />
         ) : (
-          <pre className="p-5 text-[12px] leading-relaxed font-mono text-text whitespace-pre-wrap break-words">
-            {preview.content}
-          </pre>
+          <CodeView source={preview.content} path={path} />
         )}
       </div>
     </div>
