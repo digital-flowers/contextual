@@ -1,10 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
   ContextualConfig,
-  Feature,
+  Task,
   RepoConfig,
   Ticket,
   Worktree,
+  FileNode,
+  FilePreview,
 } from "@contextual/types";
 
 // IDE
@@ -12,20 +14,8 @@ export const openInIde = (path: string, ideType: string, customPath?: string): P
   invoke("open_in_ide", { path, ideType, customPath });
 
 // Session
-export const startSession = (featureId: string, cwd: string, shell: string): Promise<void> =>
-  invoke("start_session", { featureId, cwd, shell });
-
-export const writeToSession = (featureId: string, data: string): Promise<void> =>
-  invoke("write_to_session", { featureId, data });
-
-export const resizeSession = (featureId: string, cols: number, rows: number): Promise<void> =>
-  invoke("resize_session", { featureId, cols, rows });
-
-export const stopSession = (featureId: string): Promise<void> =>
-  invoke("stop_session", { featureId });
-
-export const sessionIsRunning = (featureId: string): Promise<boolean> =>
-  invoke("session_is_running", { featureId });
+export const openTerminal = (cwd: string): Promise<void> =>
+  invoke("open_terminal", { cwd });
 
 // Config
 export const configExists = (orgRoot: string): Promise<boolean> =>
@@ -51,14 +41,50 @@ export const listWorktrees = (repoPath: string, repoName: string): Promise<Workt
   invoke("list_worktrees", { repoPath, repoName });
 
 // Workspace
-export const createFeature = (orgRoot: string, ticket: Ticket, repos: RepoConfig[]): Promise<Feature> =>
-  invoke("create_feature", { orgRoot, ticket, repos });
+export const createTask = (orgRoot: string, ticket: Ticket, repos: RepoConfig[]): Promise<Task> =>
+  invoke("create_task", { orgRoot, ticket, repos });
 
-export const listFeatures = (orgRoot: string): Promise<Feature[]> =>
-  invoke("list_features", { orgRoot });
+export const listTasks = (orgRoot: string): Promise<Task[]> =>
+  invoke("list_tasks", { orgRoot });
 
-export const updateFeatureStatus = (folderPath: string, status: string): Promise<Feature> =>
-  invoke("update_feature_status", { folderPath, status });
+export const updateTaskStatus = (folderPath: string, status: string): Promise<Task> =>
+  invoke("update_task_status", { folderPath, status });
 
-export const addFeatureNote = (folderPath: string, content: string): Promise<Feature> =>
-  invoke("add_feature_note", { folderPath, content });
+export const deleteTask = (folderPath: string): Promise<void> =>
+  invoke("delete_task", { folderPath });
+
+export const addTaskNote = (folderPath: string, content: string): Promise<Task> =>
+  invoke("add_task_note", { folderPath, content });
+
+// Resources
+export const addTaskResource = (
+  folderPath: string,
+  kind: string,
+  title: string,
+  location: string,
+  note?: string,
+): Promise<Task> =>
+  invoke("add_task_resource", { folderPath, kind, title, location, note });
+
+export const addFileResource = (
+  folderPath: string,
+  srcPath: string,
+  copy: boolean,
+): Promise<Task> =>
+  invoke("add_file_resource", { folderPath, srcPath, copy });
+
+export const removeTaskResource = (folderPath: string, resourceId: string): Promise<Task> =>
+  invoke("remove_task_resource", { folderPath, resourceId });
+
+// Files / filesystem
+export const listTaskFiles = (folderPath: string): Promise<FileNode[]> =>
+  invoke("list_task_files", { folderPath });
+
+export const readFilePreview = (path: string): Promise<FilePreview> =>
+  invoke("read_file_preview", { path });
+
+export const openWithDefault = (path: string): Promise<void> =>
+  invoke("open_with_default", { path });
+
+export const revealInFinder = (path: string): Promise<void> =>
+  invoke("reveal_in_finder", { path });

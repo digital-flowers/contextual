@@ -104,7 +104,21 @@ pub struct ContextNote {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Feature {
+pub struct Resource {
+    pub id: String,
+    pub kind: String,
+    pub title: String,
+    pub location: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub copied: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+    pub added_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Task {
     pub id: String,
     pub folder_name: String,
     pub folder_path: String,
@@ -112,6 +126,26 @@ pub struct Feature {
     pub worktrees: Vec<Worktree>,
     pub status: String,
     pub notes: Vec<ContextNote>,
+    #[serde(default)]
+    pub resources: Vec<Resource>,
     pub created_at: String,
     pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileNode {
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub children: Option<Vec<FileNode>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FilePreview {
+    pub kind: String,
+    pub content: String,
+    pub size: u64,
 }

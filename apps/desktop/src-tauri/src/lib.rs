@@ -2,7 +2,7 @@ mod commands;
 mod error;
 mod types;
 
-use commands::{config::*, git::*, ide::*, session::*, workspace::*};
+use commands::{config::*, fs::*, git::*, ide::*, session::*, workspace::*};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -21,18 +21,23 @@ pub fn run() {
             remove_worktree,
             list_worktrees,
             // workspace
-            create_feature,
-            list_features,
-            update_feature_status,
-            add_feature_note,
+            create_task,
+            list_tasks,
+            update_task_status,
+            delete_task,
+            add_task_note,
+            add_task_resource,
+            add_file_resource,
+            remove_task_resource,
+            // fs
+            list_task_files,
+            read_file_preview,
+            open_with_default,
+            reveal_in_finder,
             // ide
             open_in_ide,
             // session
-            start_session,
-            write_to_session,
-            resize_session,
-            stop_session,
-            session_is_running,
+            open_terminal,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

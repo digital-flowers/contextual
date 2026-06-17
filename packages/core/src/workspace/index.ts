@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import type { Feature, Ticket, RepoConfig, Worktree } from "@contextual/types";
+import type { Task, Ticket, RepoConfig, Worktree } from "@contextual/types";
 import { addWorktree } from "../git/index.js";
 
 export function slugify(text: string): string {
@@ -12,21 +12,21 @@ export function slugify(text: string): string {
     .slice(0, 60);
 }
 
-export function featureFolderName(ticket: Ticket): string {
+export function taskFolderName(ticket: Ticket): string {
   return `${ticket.id}-${slugify(ticket.title)}`;
 }
 
-export async function createFeatureFolder(
+export async function createTaskFolder(
   orgRoot: string,
   ticket: Ticket,
   repos: RepoConfig[]
-): Promise<Feature> {
-  const folderName = featureFolderName(ticket);
-  const folderPath = path.join(orgRoot, "features", folderName);
+): Promise<Task> {
+  const folderName = taskFolderName(ticket);
+  const folderPath = path.join(orgRoot, "tasks", folderName);
 
   await fs.mkdir(folderPath, { recursive: true });
 
-  const branch = `feature/${folderName}`;
+  const branch = `task/${folderName}`;
   const worktrees: Worktree[] = [];
 
   for (const repo of repos) {
@@ -42,7 +42,7 @@ export async function createFeatureFolder(
 
   const now = new Date().toISOString();
 
-  const feature: Feature = {
+  const task: Task = {
     id: crypto.randomUUID(),
     folderName,
     folderPath,
@@ -50,19 +50,20 @@ export async function createFeatureFolder(
     worktrees,
     status: "not_started",
     notes: [],
+    resources: [],
     createdAt: now,
     updatedAt: now,
   };
 
-  await writeContextMd(feature);
-  await writeClaudeMd(feature);
-  await writeFeatureJson(feature);
+  await writeContextMd(task);
+  await writeClaudeMd(task);
+  await writeTaskJson(task);
 
-  return feature;
+  return task;
 }
 
-export async function writeContextMd(feature: Feature): Promise<void> {
-  const { ticket, worktrees } = feature;
+export async function writeContextMd(task: Task): Promise<void> {
+  const { ticket, worktrees } = task;
 
   const repoLines = worktrees
     .map((w) => `- **${w.repoName}** — \`${w.worktreePath}\` (branch: \`${w.branch}\`)`)
@@ -92,20 +93,20 @@ ${linkLines}
 
 ## Notes
 
-_Add notes here as you work on this feature._
+_Add notes here as you work on this task._
 `;
 
-  await fs.writeFile(path.join(feature.folderPath, "context.md"), content, "utf-8");
+  await fs.writeFile(path.join(task.folderPath, "context.md"), content, "utf-8");
 }
 
-export async function writeClaudeMd(feature: Feature): Promise<void> {
-  const { ticket, worktrees } = feature;
+export async function writeClaudeMd(task: Task): Promise<void> {
+  const { ticket, worktrees } = task;
 
   const repoLines = worktrees
     .map((w) => `- \`${w.repoName}/\` — ${w.worktreePath}`)
     .join("\n");
 
-  const content = `# Contextual — Feature Workspace
+  const content = `# Contextual — Task Workspace
 
 You are working on **${ticket.id}: ${ticket.title}**.
 
@@ -120,49 +121,49 @@ Read \`context.md\` for the full ticket description, links, and notes before sta
 ## Guidelines
 
 - All changes must stay within the worktrees listed above
-- Raise a PR per repo when the feature is complete
+- Raise a PR per repo when the task is complete
 - Update \`context.md\` with any decisions or discoveries as you work
 `;
 
-  await fs.writeFile(path.join(feature.folderPath, "CLAUDE.md"), content, "utf-8");
+  await fs.writeFile(path.join(task.folderPath, "CLAUDE.md"), content, "utf-8");
 }
 
-async function writeFeatureJson(feature: Feature): Promise<void> {
+async function writeTaskJson(task: Task): Promise<void> {
   await fs.writeFile(
-    path.join(feature.folderPath, "feature.json"),
-    JSON.stringify(feature, null, 2),
+    path.join(task.folderPath, "task.json"),
+    JSON.stringify(task, null, 2),
     "utf-8"
   );
 }
 
-export async function readFeatureJson(featurePath: string): Promise<Feature> {
-  const raw = await fs.readFile(path.join(featurePath, "feature.json"), "utf-8");
-  return JSON.parse(raw) as Feature;
+export async function readTaskJson(taskPath: string): Promise<Task> {
+  const raw = await fs.readFile(path.join(taskPath, "task.json"), "utf-8");
+  return JSON.parse(raw) as Task;
 }
 
-export async function updateFeature(feature: Feature): Promise<void> {
-  feature.updatedAt = new Date().toISOString();
-  await writeFeatureJson(feature);
+export async function updateTask(task: Task): Promise<void> {
+  task.updatedAt = new Date().toISOString();
+  await writeTaskJson(task);
 }
 
-export async function listFeatures(orgRoot: string): Promise<Feature[]> {
-  const featuresDir = path.join(orgRoot, "features");
+export async function listTasks(orgRoot: string): Promise<Task[]> {
+  const tasksDir = path.join(orgRoot, "tasks");
 
   try {
-    const entries = await fs.readdir(featuresDir, { withFileTypes: true });
-    const features: Feature[] = [];
+    const entries = await fs.readdir(tasksDir, { withFileTypes: true });
+    const tasks: Task[] = [];
 
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
       try {
-        const feature = await readFeatureJson(path.join(featuresDir, entry.name));
-        features.push(feature);
+        const task = await readTaskJson(path.join(tasksDir, entry.name));
+        tasks.push(task);
       } catch {
-        // Skip folders that don't have a feature.json
+        // Skip folders that don't have a task.json
       }
     }
 
-    return features.sort(
+    return tasks.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   } catch {
