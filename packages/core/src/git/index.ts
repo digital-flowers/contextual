@@ -18,7 +18,7 @@ export async function addWorktree(
   try {
     await git(repoPath, ["worktree", "add", "-b", branch, worktreePath]);
   } catch {
-    // Branch already exists — check it out without -b
+    // Branch already exists - check it out without -b
     await git(repoPath, ["worktree", "add", worktreePath, branch]);
   }
 }

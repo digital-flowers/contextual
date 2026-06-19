@@ -1,6 +1,6 @@
-# The Solution — Contextual
+# The Solution - Contextual
 
-> **Contextual — The Developer's New Home**
+> **Contextual - The Developer's New Home**
 
 ## The Insight
 
@@ -10,7 +10,7 @@ A feature has a ticket, a design, a conversation, and code spread across multipl
 
 ## What Contextual Is
 
-Contextual is a **Contextual Development Environment (CDE)** — a desktop app that sits above your IDE, your terminal, and your tools, and organizes everything around features instead of files.
+Contextual is a **Contextual Development Environment (CDE)** - a desktop app that sits above your IDE, your terminal, and your tools, and organizes everything around features instead of files.
 
 ## How It Works
 
@@ -38,16 +38,16 @@ feature/PROJ-142-user-auth/
 ```
 
 ### 3. Work in Parallel
-Every feature is isolated. You can run 5 features simultaneously — each with its own branch state, its own AI session, its own context. No tab chaos. No context bleed.
+Every feature is isolated. You can run 5 features simultaneously - each with its own branch state, its own AI session, its own context. No tab chaos. No context bleed.
 
 ### 4. Stay in Your IDE
-The feature folder opens cleanly in any IDE. Contextual doesn't replace your editor — it gives your editor a better home.
+The feature folder opens cleanly in any IDE. Contextual doesn't replace your editor - it gives your editor a better home.
 
 ### 5. Wind Down Cleanly
-When the PR is raised, Contextual helps you archive the feature — cleaning up worktrees and preserving the context log for future reference.
+When the PR is raised, Contextual helps you archive the feature - cleaning up worktrees and preserving the context log for future reference.
 
 ## The Category
 
-Contextual defines a new category: the **CDE — Contextual Development Environment**.
+Contextual defines a new category: the **CDE - Contextual Development Environment**.
 
-Where the IDE manages your code, the CDE manages your **feature** — which is bigger, richer, and maps to how development actually works in the AI age.
+Where the IDE manages your code, the CDE manages your **feature** - which is bigger, richer, and maps to how development actually works in the AI age.

@@ -1,16 +1,16 @@
-# Contextual — Product Plan
+# Contextual - Product Plan
 
-> **Contextual — The Developer's New Home**
+> **Contextual - The Developer's New Home**
 
 ## North Star
 
-A developer opens Contextual in the morning, picks their tickets, and their workspaces are ready — context loaded, AI sessions running, repos branched. They never leave the app to chase context.
+A developer opens Contextual in the morning, picks their tickets, and their workspaces are ready - context loaded, AI sessions running, repos branched. They never leave the app to chase context.
 
 ---
 
 ## Architecture Principle
 
-Contextual does not build native integrations. Instead it runs a **master Claude Code session** with MCP servers attached — Linear, Figma, Slack, and any future tool are all handled through MCP. Contextual's job is to orchestrate workspaces and sessions, not to re-implement integrations.
+Contextual does not build native integrations. Instead it runs a **master Claude Code session** with MCP servers attached - Linear, Figma, Slack, and any future tool are all handled through MCP. Contextual's job is to orchestrate workspaces and sessions, not to re-implement integrations.
 
 ```
 Contextual App
@@ -31,7 +31,7 @@ Contextual App
 
 ### MVP Scope
 
-#### 1. App Shell — Tauri + React + TypeScript
+#### 1. App Shell - Tauri + React + TypeScript
 - [ ] Desktop app (macOS first, Windows/Linux after)
 - [ ] Persistent local config (connected repos, preferences)
 - [ ] System tray presence
@@ -62,7 +62,7 @@ Contextual App
 - [ ] Session controls: start, stop, restart
 - [ ] Session status indicators on the feature card
 
-#### 6. Home Screen — Feature Board
+#### 6. Home Screen - Feature Board
 - [ ] Cards per active feature showing: ticket name, repos, session status
 - [ ] Quick actions per card: open IDE, open terminal, view context, stop session
 - [ ] Feature states: setting up / active / waiting / ready for PR / archived
@@ -72,7 +72,7 @@ Contextual App
 
 ## Workspace File Structure
 
-Contextual is the home — config lives at the root of the organization folder, visible and owned, not hidden away.
+Contextual is the home - config lives at the root of the organization folder, visible and owned, not hidden away.
 
 ```
 ~/Dev/my-org/                         ← organization root (user defines this)
@@ -92,7 +92,7 @@ Contextual is the home — config lives at the root of the organization folder, 
     └── backend/
 ```
 
-`contextual.json` is the single source of truth for that organization. Multiple org roots are supported — one per client, one per personal projects — switchable inside the app like workspaces. Commit `contextual.json` and the whole team shares the same setup.
+`contextual.json` is the single source of truth for that organization. Multiple org roots are supported - one per client, one per personal projects - switchable inside the app like workspaces. Commit `contextual.json` and the whole team shares the same setup.
 
 ```json
 {

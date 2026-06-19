@@ -102,7 +102,7 @@ export function NewTaskScreen({ orgRoot, repos, hasLinear, onCreated }: NewTaskS
             ))}
           </div>
 
-          {/* Content panel — shares border with active tab */}
+          {/* Content panel - shares border with active tab */}
           <div className="border border-border rounded-b-lg rounded-tr-lg bg-bg p-4 mb-4" style={{ position: "relative", zIndex: 0 }}>
           {tab === "pick" ? (
             <div>
@@ -160,7 +160,7 @@ export function NewTaskScreen({ orgRoot, repos, hasLinear, onCreated }: NewTaskS
 
           </div>{/* end content panel */}
 
-          {/* Repos — outside the tab panel */}
+          {/* Repos - outside the tab panel */}
           {repos.length > 0 && (
             <div className="mb-4">
               <label className="text-xs text-muted mb-2 block">Repos to include</label>

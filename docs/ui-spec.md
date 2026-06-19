@@ -1,15 +1,15 @@
-# Contextual — UI Specification
+# Contextual - UI Specification
 
-> **Contextual — The Developer's New Home**
+> **Contextual - The Developer's New Home**
 
 ---
 
 ## Design Principles
 
-- **Dark by default**, light mode available — developer-native
-- **Feature is the unit** — every screen orbits around features, not files or repos
-- **Status at a glance** — you should never have to open something to know its state
-- **Minimal chrome** — the work is the UI, not the app itself
+- **Dark by default**, light mode available - developer-native
+- **Feature is the unit** - every screen orbits around features, not files or repos
+- **Status at a glance** - you should never have to open something to know its state
+- **Minimal chrome** - the work is the UI, not the app itself
 
 ---
 
@@ -66,7 +66,7 @@ Typography: `Inter` for UI, `JetBrains Mono` for terminal and code.
 └──────────────────────┘
 ```
 
-- Org switcher at top — switch between organization roots
+- Org switcher at top - switch between organization roots
 - Active features listed directly in sidebar for quick jump
 - `●` green = Claude session running, `●` amber = waiting for input, `○` = idle
 - `+ New Feature` always visible at bottom
@@ -114,11 +114,11 @@ The home screen. A grid of feature cards, one per active feature.
 - Repo tags (chips showing which worktrees are checked out)
 - Actions: `Open IDE`, `▶ Terminal` (or `▶ Start` if no session running)
 - Clicking the card expands it inline to reveal the embedded terminal (see below)
-- `⚠ Waiting for input` badge pulses amber — it's a notification, not just a status
+- `⚠ Waiting for input` badge pulses amber - it's a notification, not just a status
 
 ---
 
-### 2. Feature Card — Expanded (inline terminal)
+### 2. Feature Card - Expanded (inline terminal)
 
 Clicking a card expands it to full width, revealing the embedded terminal below the card header.
 
@@ -132,7 +132,7 @@ Clicking a card expands it to full width, revealing the embedded terminal below 
 │ │ > claude                                                  │ │
 │ │                                                           │ │
 │ │ I've implemented the JWT middleware. I need to know       │ │
-│ │ which expiry duration to use — the ticket mentions        │ │
+│ │ which expiry duration to use - the ticket mentions        │ │
 │ │ both 1h and 24h. Which should I use?                      │ │
 │ │                                                           │ │
 │ │ ▌                                                         │ │
@@ -154,7 +154,7 @@ Slides in from the right over the main content, without navigating away.
 
 ```
 ┌────────────────────────────────────────────────┐
-│ Context — PROJ-142                         [×] │
+│ Context - PROJ-142                         [×] │
 ├────────────────────────────────────────────────┤
 │ User Authentication                            │
 │ Status: In Progress · Assignee: Fareed         │
@@ -167,7 +167,7 @@ Slides in from the right over the main content, without navigating away.
 │ Links                                          │
 │ ─────────────                                  │
 │ ↗ Linear ticket                               │
-│ ↗ Figma — Auth flow screens                   │
+│ ↗ Figma - Auth flow screens                   │
 │                                                │
 │ Notes                                          │
 │ ─────────────                                  │
@@ -186,9 +186,9 @@ Slides in from the right over the main content, without navigating away.
 
 Triggered by `+ New Feature` in sidebar or board. Opens a modal with two paths.
 
-#### Path A — Pick an existing ticket (Linear connected)
+#### Path A - Pick an existing ticket (Linear connected)
 
-Linear search is live — results update as the user types. No need to open Linear.
+Linear search is live - results update as the user types. No need to open Linear.
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -212,7 +212,7 @@ Linear search is live — results update as the user types. No need to open Line
 └──────────────────────────────────────────────┘
 ```
 
-#### Path B — Create a new ticket
+#### Path B - Create a new ticket
 
 If Linear is connected, the ticket is created in Linear and locally.
 If no integration is connected, it's created as local markdown files only.
@@ -262,7 +262,7 @@ If Linear is **not** connected, the Linear block is replaced with:
 3. `context.md` is generated from ticket data (title, description, links)
 4. `CLAUDE.md` is generated with feature-scoped AI instructions
 5. Feature card appears on the board with status `○ Not started`
-6. **No Claude Code session is started automatically** — the user may still want to add more context, links, or notes before work begins
+6. **No Claude Code session is started automatically** - the user may still want to add more context, links, or notes before work begins
 7. The feature card shows a prominent `[▶ Start Session]` button to kick off work when ready
 
 ---
@@ -317,7 +317,7 @@ Manage connected repositories.
 
 Shown on first launch when no `contextual.json` is found in the opened folder.
 
-### Step 1 — Welcome
+### Step 1 - Welcome
 ```
 ┌──────────────────────────────────────────────┐
 │                                              │
@@ -330,7 +330,7 @@ Shown on first launch when no `contextual.json` is found in the opened folder.
 └──────────────────────────────────────────────┘
 ```
 
-### Step 2 — Connect Repos
+### Step 2 - Connect Repos
 ```
 ┌──────────────────────────────────────────────┐
 │ Step 1 of 3 — Your Repositories              │

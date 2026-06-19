@@ -87,7 +87,7 @@ export function Sidebar({ orgName, tasks, onOpenSettings }: SidebarProps) {
           </div>
         )}
 
-        {/* New Task button — below the list */}
+        {/* New Task button - below the list */}
         <div className="mt-2 px-0.5">
           <NavLink
             to="/new"

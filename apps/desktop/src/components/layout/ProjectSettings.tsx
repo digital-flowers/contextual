@@ -27,7 +27,7 @@ export function ProjectSettings({ config, onClose }: ProjectSettingsProps) {
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
-      {/* Panel — slides in from left, aligned with sidebar */}
+      {/* Panel - slides in from left, aligned with sidebar */}
       <div className="relative z-10 w-[520px] h-full bg-bg border-r border-border flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">

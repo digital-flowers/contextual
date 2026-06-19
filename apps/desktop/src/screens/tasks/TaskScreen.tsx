@@ -169,7 +169,7 @@ export function TaskScreen({ tasks, ide, onTaskUpdate, onTaskDelete }: TaskScree
         {isRunning && (
           <div className="flex items-center gap-2 mt-3 text-xs text-success">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            Session running — Claude is working in the terminal.
+            Session running - Claude is working in the terminal.
           </div>
         )}
       </div>

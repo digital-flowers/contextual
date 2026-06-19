@@ -32,7 +32,7 @@ fn write_context_md(task: &Task) -> AppResult<()> {
         .iter()
         .map(|w| {
             format!(
-                "- **{}** — `{}` (branch: `{}`)",
+                "- **{}** - `{}` (branch: `{}`)",
                 w.repo_name, w.worktree_path, w.branch
             )
         })
@@ -56,7 +56,7 @@ fn write_context_md(task: &Task) -> AppResult<()> {
     };
 
     let content = format!(
-        "# {} — {}\n\n> Source: {}{}\n> Priority: {} · Assignee: {}\n> Created: {}\n\n## Description\n\n{}\n\n## Repos\n\n{}\n\n## Links\n\n{}\n\n## Notes\n\n_Add notes here as you work on this task._\n",
+        "# {} - {}\n\n> Source: {}{}\n> Priority: {} · Assignee: {}\n> Created: {}\n\n## Description\n\n{}\n\n## Repos\n\n{}\n\n## Links\n\n{}\n\n## Notes\n\n_Add notes here as you work on this task._\n",
         task.ticket.id,
         task.ticket.title,
         task.ticket.source,
@@ -78,12 +78,12 @@ fn write_claude_md(task: &Task) -> AppResult<()> {
     let repo_lines: String = task
         .worktrees
         .iter()
-        .map(|w| format!("- `{}/` — {}", w.repo_name, w.worktree_path))
+        .map(|w| format!("- `{}/` - {}", w.repo_name, w.worktree_path))
         .collect::<Vec<_>>()
         .join("\n");
 
     let content = format!(
-        "# Contextual — Task Workspace\n\nYou are working on **{}: {}**.\n\n## Repos in this workspace\n\n{}\n\n## Context\n\nRead `context.md` for the full ticket description, links, and notes before starting.\n\n## Guidelines\n\n- All changes must stay within the worktrees listed above\n- Raise a PR per repo when the task is complete\n- Update `context.md` with any decisions or discoveries as you work\n",
+        "# Contextual - Task Workspace\n\nYou are working on **{}: {}**.\n\n## Repos in this workspace\n\n{}\n\n## Context\n\nRead `context.md` for the full ticket description, links, and notes before starting.\n\n## Guidelines\n\n- All changes must stay within the worktrees listed above\n- Raise a PR per repo when the task is complete\n- Update `context.md` with any decisions or discoveries as you work\n",
         task.ticket.id,
         task.ticket.title,
         repo_lines,

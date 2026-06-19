@@ -68,7 +68,7 @@ export function Wizard({ orgRoot, onChangeOrg, onComplete }: WizardProps) {
     onComplete(config);
   }
 
-  // Step 1 — Welcome
+  // Step 1 - Welcome
   if (step === 1) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center gap-6">
@@ -100,7 +100,7 @@ export function Wizard({ orgRoot, onChangeOrg, onComplete }: WizardProps) {
     );
   }
 
-  // Step 2 — Repos
+  // Step 2 - Repos
   if (step === 2) {
     return (
       <WizardStep
@@ -122,7 +122,7 @@ export function Wizard({ orgRoot, onChangeOrg, onComplete }: WizardProps) {
 
           {repos.length === 0 && (
             <p className="text-xs text-muted text-center py-4">
-              No repos added yet — you can also add them later.
+              No repos added yet - you can also add them later.
             </p>
           )}
 
@@ -149,7 +149,7 @@ export function Wizard({ orgRoot, onChangeOrg, onComplete }: WizardProps) {
     );
   }
 
-  // Step 3 — IDE
+  // Step 3 - IDE
   if (step === 3) {
     return (
       <WizardStep
@@ -200,7 +200,7 @@ export function Wizard({ orgRoot, onChangeOrg, onComplete }: WizardProps) {
     );
   }
 
-  // Step 4 — Ticketing
+  // Step 4 - Ticketing
   return (
     <WizardStep
       step={3}

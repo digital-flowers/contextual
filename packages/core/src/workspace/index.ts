@@ -66,14 +66,14 @@ export async function writeContextMd(task: Task): Promise<void> {
   const { ticket, worktrees } = task;
 
   const repoLines = worktrees
-    .map((w) => `- **${w.repoName}** — \`${w.worktreePath}\` (branch: \`${w.branch}\`)`)
+    .map((w) => `- **${w.repoName}** - \`${w.worktreePath}\` (branch: \`${w.branch}\`)`)
     .join("\n");
 
   const linkLines = ticket.links.length
     ? ticket.links.map((l) => `- [${l.label}](${l.url})`).join("\n")
     : "_No links added yet._";
 
-  const content = `# ${ticket.id} — ${ticket.title}
+  const content = `# ${ticket.id} - ${ticket.title}
 
 > Source: ${ticket.source}${ticket.linearUrl ? ` · [Open in Linear](${ticket.linearUrl})` : ""}
 > Priority: ${ticket.priority} · Assignee: ${ticket.assignee ?? "unassigned"}
@@ -103,10 +103,10 @@ export async function writeClaudeMd(task: Task): Promise<void> {
   const { ticket, worktrees } = task;
 
   const repoLines = worktrees
-    .map((w) => `- \`${w.repoName}/\` — ${w.worktreePath}`)
+    .map((w) => `- \`${w.repoName}/\` - ${w.worktreePath}`)
     .join("\n");
 
-  const content = `# Contextual — Task Workspace
+  const content = `# Contextual - Task Workspace
 
 You are working on **${ticket.id}: ${ticket.title}**.
 
