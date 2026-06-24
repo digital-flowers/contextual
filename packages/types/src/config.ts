@@ -1,3 +1,5 @@
+import type { ContextItem } from "./task";
+
 export type IDE =
   | "cursor"
   | "vscode"
@@ -36,6 +38,10 @@ export interface RepoConfig {
   defaultBranch: string;
 }
 
+/**
+ * Per-user, per-machine preferences. These are NOT part of the shared org
+ * config (contextual.json); the desktop app persists them in localStorage.
+ */
 export interface Preferences {
   ide: IDEConfig;
   shell: Shell;
@@ -44,10 +50,28 @@ export interface Preferences {
 
 export interface ContextualConfig {
   name: string;
-  repos: RepoConfig[];
+  /**
+   * Organization-level context, shared across every task: repos, shared
+   * files/folders, MCP servers, markdown docs, links, etc. Repos live here as
+   * items of kind "repo".
+   */
+  context: ContextItem[];
   integrations: Partial<Record<Integration["type"], Integration>>;
   mcp: {
     servers: MCPServer[];
   };
-  preferences: Preferences;
+}
+
+/** Maps a repo-kind context item to the RepoConfig shape used for worktrees. */
+export function repoConfigFromContext(item: ContextItem): RepoConfig {
+  return {
+    name: item.title,
+    path: item.location,
+    defaultBranch: item.defaultBranch ?? "main",
+  };
+}
+
+/** Extracts the repos (RepoConfig) from a context list. */
+export function reposFromContext(context: ContextItem[]): RepoConfig[] {
+  return context.filter((c) => c.kind === "repo").map(repoConfigFromContext);
 }

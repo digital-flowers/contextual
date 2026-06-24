@@ -6,8 +6,9 @@ import { NewTaskScreen } from "./screens/tasks/NewTaskScreen";
 import { OrgPicker } from "./screens/wizard/OrgPicker";
 import { Wizard } from "./screens/wizard/Wizard";
 import { useAppStore } from "./store/app.store";
+import { usePreferences } from "./hooks/usePreferences";
 import * as commands from "./lib/commands";
-import type { ContextualConfig } from "@contextual/types";
+import { reposFromContext, type ContextualConfig, type IDEConfig } from "@contextual/types";
 
 const LAST_ORG_KEY = "contextual:lastOrgRoot";
 
@@ -19,6 +20,8 @@ export default function App() {
     localStorage.getItem(LAST_ORG_KEY) ? "loading" : "org-picker"
   );
   const [orgRoot, setOrgRoot] = useState<string | null>(null);
+
+  const { preferences, setPreferences } = usePreferences();
 
   useEffect(() => {
     const saved = localStorage.getItem(LAST_ORG_KEY);
@@ -37,10 +40,11 @@ export default function App() {
     }
   }
 
-  async function handleWizardComplete(config: ContextualConfig) {
+  async function handleWizardComplete(config: ContextualConfig, ide: IDEConfig) {
     if (!orgRoot) return;
     await commands.createDefaultConfig(orgRoot, config.name);
     await saveConfig(config);
+    setPreferences({ ide });
     await loadOrg(orgRoot);
     localStorage.setItem(LAST_ORG_KEY, orgRoot);
     setView("app");
@@ -82,7 +86,17 @@ export default function App() {
   return (
     <MemoryRouter>
       <Routes>
-        <Route element={<Shell config={config} tasks={tasks} />}>
+        <Route
+          element={
+            <Shell
+              config={config}
+              tasks={tasks}
+              onConfigChange={saveConfig}
+              preferences={preferences}
+              onPreferencesChange={setPreferences}
+            />
+          }
+        >
           <Route
             index
             element={
@@ -96,7 +110,9 @@ export default function App() {
             element={
               <TaskScreen
                 tasks={tasks}
-                ide={config.preferences.ide}
+                ide={preferences.ide}
+                config={config}
+                onConfigChange={saveConfig}
                 onTaskUpdate={upsertTask}
                 onTaskDelete={removeTask}
               />
@@ -107,7 +123,7 @@ export default function App() {
             element={
               <NewTaskScreen
                 orgRoot={orgRoot!}
-                repos={config.repos}
+                repos={reposFromContext(config.context)}
                 hasLinear={!!config.integrations.linear}
                 onCreated={upsertTask}
               />

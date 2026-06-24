@@ -2,7 +2,7 @@ import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { GitFork, Trash2, Plus, FolderOpen } from "lucide-react";
 import { WizardStep } from "./WizardStep";
-import type { ContextualConfig, RepoConfig } from "@contextual/types";
+import type { ContextualConfig, IDEConfig, RepoConfig } from "@contextual/types";
 
 const IDES = [
   { value: "cursor", label: "Cursor" },
@@ -17,7 +17,7 @@ type IDEValue = typeof IDES[number]["value"];
 interface WizardProps {
   orgRoot: string;
   onChangeOrg: (path: string) => void;
-  onComplete: (config: ContextualConfig) => void;
+  onComplete: (config: ContextualConfig, ide: IDEConfig) => void;
 }
 
 export function Wizard({ orgRoot, onChangeOrg, onComplete }: WizardProps) {
@@ -49,23 +49,27 @@ export function Wizard({ orgRoot, onChangeOrg, onComplete }: WizardProps) {
   }
 
   function finish() {
+    const now = new Date().toISOString();
     const config: ContextualConfig = {
       name: orgName,
-      repos,
+      context: repos.map((r) => ({
+        id: crypto.randomUUID(),
+        kind: "repo" as const,
+        title: r.name,
+        location: r.path,
+        defaultBranch: r.defaultBranch,
+        addedAt: now,
+      })),
       integrations: useLinear && linearApiKey
         ? { linear: { type: "linear", apiKey: linearApiKey, workspaceId: "", workspaceName: "" } }
         : {},
       mcp: { servers: [] },
-      preferences: {
-        ide: {
-          type: ide,
-          customPath: ide === "custom" ? customIdePath : undefined,
-        },
-        shell: "zsh",
-        theme: "dark",
-      },
     };
-    onComplete(config);
+    const ideConfig: IDEConfig = {
+      type: ide,
+      customPath: ide === "custom" ? customIdePath : undefined,
+    };
+    onComplete(config, ideConfig);
   }
 
   // Step 1 - Welcome

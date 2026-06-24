@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { ExternalLink, FileCode, Trash2, ScanSearch } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import type { FilePreview, IDEConfig, Resource } from "@contextual/types";
+import type { ContextItem, FilePreview, IDEConfig } from "@contextual/types";
 import { Button } from "../../../components/ui/Button";
 import * as commands from "../../../lib/commands";
-import { RESOURCE_META } from "./resourceMeta";
-import type { Selection } from "./ResourcePanel";
+import { CONTEXT_META } from "./contextMeta";
+import type { Selection } from "./ContextPanel";
 import { MarkdownView } from "./viewers/MarkdownView";
 import { JsonView } from "./viewers/JsonView";
 import { CodeView } from "./viewers/CodeView";
@@ -13,19 +13,20 @@ import { CodeView } from "./viewers/CodeView";
 interface PreviewPaneProps {
   selection?: Selection;
   ide: IDEConfig;
-  onRemoveResource?: (resource: Resource) => void;
+  /** Only provided for removable items (task-level context). */
+  onRemove?: (item: ContextItem) => void;
 }
 
-export function PreviewPane({ selection, ide, onRemoveResource }: PreviewPaneProps) {
+export function PreviewPane({ selection, ide, onRemove }: PreviewPaneProps) {
   if (!selection) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-sm text-muted">Select a resource or file to preview.</p>
+        <p className="text-sm text-muted">Select context or a file to preview.</p>
       </div>
     );
   }
 
-  // A file path is available either from a file-tree node or a file/folder resource.
+  // A file path is available either from a file-tree node or a file/folder item.
   if (selection.type === "file" && selection.file) {
     const { file } = selection;
     if (file.isDir) {
@@ -34,38 +35,40 @@ export function PreviewPane({ selection, ide, onRemoveResource }: PreviewPanePro
     return <FilePreviewView title={file.name} path={file.path} ide={ide} />;
   }
 
-  const resource = selection.resource!;
-  const meta = RESOURCE_META[resource.kind];
+  const item = selection.item!;
+  const meta = CONTEXT_META[item.kind];
+  const remove = onRemove ? () => onRemove(item) : undefined;
 
-  // Local file/folder resources behave like file-tree files.
-  if (resource.kind === "file") {
+  // Local file/markdown items behave like file-tree files.
+  if (item.kind === "file" || item.kind === "md") {
     return (
       <FilePreviewView
-        title={resource.title}
-        path={resource.location}
+        title={item.title}
+        path={item.location}
         ide={ide}
-        onRemove={onRemoveResource ? () => onRemoveResource(resource) : undefined}
+        onRemove={remove}
       />
     );
   }
-  if (resource.kind === "folder") {
+  // Repos and folders are directories on disk.
+  if (item.kind === "folder" || item.kind === "repo") {
     return (
       <FolderInfo
-        title={resource.title}
-        path={resource.location}
+        title={item.title}
+        path={item.location}
         ide={ide}
-        onRemove={onRemoveResource ? () => onRemoveResource(resource) : undefined}
+        onRemove={remove}
       />
     );
   }
 
-  // Online + config resources → metadata card.
+  // Online + config items → metadata card.
   return (
-    <ResourceCard
-      resource={resource}
+    <ContextCard
+      item={item}
       online={meta.online}
       typeLabel={meta.label}
-      onRemove={onRemoveResource ? () => onRemoveResource(resource) : undefined}
+      onRemove={remove}
     />
   );
 }
@@ -103,7 +106,7 @@ function FileActions({ path, ide, onRemove }: { path: string; ide: IDEConfig; on
         <ScanSearch size={12} />
       </Button>
       {onRemove && (
-        <Button size="sm" variant="danger" onClick={onRemove} title="Remove resource">
+        <Button size="sm" variant="danger" onClick={onRemove} title="Remove context">
           <Trash2 size={12} />
         </Button>
       )}
@@ -166,13 +169,13 @@ function FolderInfo({ title, path, ide, onRemove }: { title: string; path: strin
   );
 }
 
-function ResourceCard({
-  resource,
+function ContextCard({
+  item,
   online,
   typeLabel,
   onRemove,
 }: {
-  resource: Resource;
+  item: ContextItem;
   online: boolean;
   typeLabel: string;
   onRemove?: () => void;
@@ -180,18 +183,18 @@ function ResourceCard({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <Header
-        title={resource.title}
+        title={item.title}
         subtitle={typeLabel}
         actions={
           <>
             {online && (
-              <Button size="sm" variant="primary" onClick={() => openUrl(resource.location).catch(console.error)}>
+              <Button size="sm" variant="primary" onClick={() => openUrl(item.location).catch(console.error)}>
                 <ExternalLink size={12} />
                 Open
               </Button>
             )}
             {onRemove && (
-              <Button size="sm" variant="danger" onClick={onRemove} title="Remove resource">
+              <Button size="sm" variant="danger" onClick={onRemove} title="Remove context">
                 <Trash2 size={12} />
               </Button>
             )}
@@ -203,26 +206,26 @@ function ResourceCard({
           <p className="text-[10px] uppercase tracking-wide text-muted/70 mb-1">{online ? "URL" : "Name"}</p>
           {online ? (
             <button
-              onClick={() => openUrl(resource.location).catch(console.error)}
+              onClick={() => openUrl(item.location).catch(console.error)}
               className="text-xs text-accent hover:underline break-all text-left"
             >
-              {resource.location}
+              {item.location}
             </button>
           ) : (
-            <p className="text-xs font-mono text-text break-all">{resource.location}</p>
+            <p className="text-xs font-mono text-text break-all">{item.location}</p>
           )}
         </div>
-        {resource.note && (
+        {item.note && (
           <div>
             <p className="text-[10px] uppercase tracking-wide text-muted/70 mb-1">Note</p>
-            <p className="text-xs text-text whitespace-pre-wrap">{resource.note}</p>
+            <p className="text-xs text-text whitespace-pre-wrap">{item.note}</p>
           </div>
         )}
-        {!online && (resource.kind === "mcp" || resource.kind === "skill") && (
+        {!online && (item.kind === "mcp" || item.kind === "skill") && (
           <p className="text-xs text-muted">
-            {resource.kind === "mcp"
-              ? "MCP server config attached to this task. It is included in the task's context when starting a session."
-              : "Skill attached to this task. It is made available to the agent in this task's context."}
+            {item.kind === "mcp"
+              ? "MCP server config. It is included in the task's context when starting a session."
+              : "Skill made available to the agent in this task's context."}
           </p>
         )}
       </div>

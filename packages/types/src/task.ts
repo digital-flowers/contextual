@@ -15,26 +15,36 @@ export interface ContextNote {
   createdAt: string;
 }
 
-export type ResourceKind =
+export type ContextKind =
+  | "repo"
   | "file"
   | "folder"
   | "link"
   | "notion"
   | "figma"
   | "mcp"
-  | "skill";
+  | "skill"
+  | "md";
 
-export interface Resource {
+/**
+ * A single piece of context. Context can be attached at two levels: the
+ * organization (shared across every task) or an individual task. Everything a
+ * task can draw on - repos, local files/folders, MCP servers, markdown docs,
+ * and online references - is modelled as a ContextItem.
+ */
+export interface ContextItem {
   id: string;
-  kind: ResourceKind;
+  kind: ContextKind;
   /** Display name. */
   title: string;
-  /** Absolute path for file/folder, URL for online resources, or config name for mcp/skill. */
+  /** Absolute path for file/folder/repo/md, URL for online items, or config name for mcp/skill. */
   location: string;
-  /** For file/folder: true if copied into the task folder, false if only referenced. */
+  /** For file/folder/md: true if copied into the folder, false if only referenced. */
   copied?: boolean;
   /** Optional free-text note shown in the preview. */
   note?: string;
+  /** For repo items: default branch used when creating worktrees. */
+  defaultBranch?: string;
   addedAt: string;
 }
 
@@ -47,7 +57,8 @@ export interface Task {
   status: TaskStatus;
   session?: Session;
   notes: ContextNote[];
-  resources: Resource[];
+  /** Per-task context (in addition to the org-level context). */
+  context: ContextItem[];
   createdAt: string;
   updatedAt: string;
 }

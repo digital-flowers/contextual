@@ -56,25 +56,25 @@ export const deleteTask = (folderPath: string): Promise<void> =>
 export const addTaskNote = (folderPath: string, content: string): Promise<Task> =>
   invoke("add_task_note", { folderPath, content });
 
-// Resources
-export const addTaskResource = (
+// Context
+export const addTaskContext = (
   folderPath: string,
   kind: string,
   title: string,
   location: string,
   note?: string,
 ): Promise<Task> =>
-  invoke("add_task_resource", { folderPath, kind, title, location, note });
+  invoke("add_task_context", { folderPath, kind, title, location, note });
 
-export const addFileResource = (
+export const addFileContext = (
   folderPath: string,
   srcPath: string,
   copy: boolean,
 ): Promise<Task> =>
-  invoke("add_file_resource", { folderPath, srcPath, copy });
+  invoke("add_file_context", { folderPath, srcPath, copy });
 
-export const removeTaskResource = (folderPath: string, resourceId: string): Promise<Task> =>
-  invoke("remove_task_resource", { folderPath, resourceId });
+export const removeTaskContext = (folderPath: string, contextId: string): Promise<Task> =>
+  invoke("remove_task_context", { folderPath, contextId });
 
 // Files / filesystem
 export const listTaskFiles = (folderPath: string): Promise<FileNode[]> =>

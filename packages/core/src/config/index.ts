@@ -34,13 +34,8 @@ export async function configExists(orgRoot: string): Promise<boolean> {
 export function createDefaultConfig(name: string): ContextualConfig {
   return {
     name,
-    repos: [],
+    context: [],
     integrations: {},
     mcp: { servers: [] },
-    preferences: {
-      ide: { type: "cursor" },
-      shell: "zsh",
-      theme: "dark",
-    },
   };
 }

@@ -50,7 +50,7 @@ export async function createTaskFolder(
     worktrees,
     status: "not_started",
     notes: [],
-    resources: [],
+    context: [],
     createdAt: now,
     updatedAt: now,
   };

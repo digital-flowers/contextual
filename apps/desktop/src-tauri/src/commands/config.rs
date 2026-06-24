@@ -32,21 +32,13 @@ pub async fn write_config(org_root: String, config: ContextualConfig) -> AppResu
 #[tauri::command]
 pub async fn create_default_config(org_root: String, name: String) -> AppResult<ContextualConfig> {
     use std::collections::HashMap;
-    use crate::types::{IDEConfig, MCPConfig, Preferences};
+    use crate::types::MCPConfig;
 
     let config = ContextualConfig {
         name,
-        repos: vec![],
+        context: vec![],
         integrations: HashMap::new(),
         mcp: MCPConfig { servers: vec![] },
-        preferences: Preferences {
-            ide: IDEConfig {
-                ide_type: "cursor".to_string(),
-                custom_path: None,
-            },
-            shell: "zsh".to_string(),
-            theme: "dark".to_string(),
-        },
     };
 
     let path = config_path(&org_root);

@@ -1,28 +1,36 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Play, Square, Archive, ArchiveRestore, Trash2, Terminal } from "lucide-react";
-import type { Task, Resource, IDEConfig } from "@contextual/types";
+import type { ContextItem, ContextualConfig, Task, IDEConfig } from "@contextual/types";
 import { Button } from "../../components/ui/Button";
 import { TaskStatusBadge } from "./TaskStatusBadge";
-import { ResourcePanel, type Selection } from "./panel/ResourcePanel";
+import { ContextPanel, type Selection } from "./panel/ContextPanel";
 import { PreviewPane } from "./panel/PreviewPane";
-import { AddResourceDialog } from "./panel/AddResourceDialog";
+import { AddContextDialog, type NewContextItem } from "./panel/AddContextDialog";
 import * as commands from "../../lib/commands";
 
 interface TaskScreenProps {
   tasks: Task[];
   ide: IDEConfig;
+  config: ContextualConfig;
+  onConfigChange: (config: ContextualConfig) => void;
   onTaskUpdate: (task: Task) => void;
   onTaskDelete: (taskId: string) => void;
 }
 
-export function TaskScreen({ tasks, ide, onTaskUpdate, onTaskDelete }: TaskScreenProps) {
+type AddScope = "task" | "org";
+
+function newId(): string {
+  return crypto.randomUUID();
+}
+
+export function TaskScreen({ tasks, ide, config, onConfigChange, onTaskUpdate, onTaskDelete }: TaskScreenProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const task = tasks.find((t) => t.id === id);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [selection, setSelection] = useState<Selection | undefined>(undefined);
-  const [addOpen, setAddOpen] = useState(false);
+  const [addScope, setAddScope] = useState<AddScope | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   if (!task) {
@@ -64,16 +72,37 @@ export function TaskScreen({ tasks, ide, onTaskUpdate, onTaskDelete }: TaskScree
     navigate("/");
   }
 
-  async function handleRemoveResource(resource: Resource) {
-    const updated = await commands.removeTaskResource(task!.folderPath, resource.id);
+  async function handleRemoveContext(item: ContextItem) {
+    // Only task-level items are removable here.
+    const updated = await commands.removeTaskContext(task!.folderPath, item.id);
     onTaskUpdate(updated);
-    setSelection((s) => (s?.type === "resource" && s.resource?.id === resource.id ? undefined : s));
+    setSelection((s) => (s?.type === "context" && s.item?.id === item.id ? undefined : s));
     setRefreshKey((k) => k + 1);
   }
 
-  function handleResourceAdded(updated: Task) {
+  // --- Adding context ---
+
+  async function addTaskItem(item: NewContextItem) {
+    const updated = await commands.addTaskContext(
+      task!.folderPath,
+      item.kind,
+      item.title,
+      item.location,
+      item.note,
+    );
     onTaskUpdate(updated);
     setRefreshKey((k) => k + 1);
+  }
+
+  async function addTaskFile(srcPath: string, copy: boolean) {
+    const updated = await commands.addFileContext(task!.folderPath, srcPath, copy);
+    onTaskUpdate(updated);
+    setRefreshKey((k) => k + 1);
+  }
+
+  function addOrgItem(item: NewContextItem) {
+    const full: ContextItem = { ...item, id: newId(), addedAt: new Date().toISOString() };
+    onConfigChange({ ...config, context: [...config.context, full] });
   }
 
   return (
@@ -174,27 +203,39 @@ export function TaskScreen({ tasks, ide, onTaskUpdate, onTaskDelete }: TaskScree
         )}
       </div>
 
-      {/* Body: resource/files panel + preview */}
+      {/* Body: context/files panel + preview */}
       <div className="flex-1 flex min-h-0">
-        <ResourcePanel
+        <ContextPanel
           task={task}
+          orgContext={config.context}
           selection={selection}
           onSelect={setSelection}
-          onAddResource={() => setAddOpen(true)}
+          onAddTaskContext={() => setAddScope("task")}
+          onAddOrgContext={() => setAddScope("org")}
           refreshKey={refreshKey}
         />
         <PreviewPane
           selection={selection}
           ide={ide}
-          onRemoveResource={handleRemoveResource}
+          // Org context is removed from Project Settings, not here.
+          onRemove={selection?.scope === "task" ? handleRemoveContext : undefined}
         />
       </div>
 
-      {addOpen && (
-        <AddResourceDialog
-          task={task}
-          onClose={() => setAddOpen(false)}
-          onAdded={handleResourceAdded}
+      {addScope === "task" && (
+        <AddContextDialog
+          scopeLabel="task"
+          onClose={() => setAddScope(null)}
+          onAddItem={addTaskItem}
+          onAddFile={addTaskFile}
+        />
+      )}
+      {addScope === "org" && (
+        <AddContextDialog
+          scopeLabel="organization"
+          onClose={() => setAddScope(null)}
+          onAddItem={addOrgItem}
+          // No file-copy target for org context; reference repos/files/links/configs.
         />
       )}
     </div>

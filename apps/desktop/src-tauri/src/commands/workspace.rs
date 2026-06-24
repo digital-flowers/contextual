@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use chrono::Utc;
 use uuid::Uuid;
 use crate::error::AppResult;
-use crate::types::{ContextNote, Resource, Task, RepoConfig, Ticket, Worktree};
+use crate::types::{ContextItem, ContextNote, Task, RepoConfig, Ticket, Worktree};
 use super::git::add_worktree;
 
 fn slugify(text: &str) -> String {
@@ -146,7 +146,7 @@ pub async fn create_task(
         worktrees,
         status: "not_started".to_string(),
         notes: Vec::new(),
-        resources: Vec::new(),
+        context: Vec::new(),
         created_at: now.clone(),
         updated_at: now,
     };
@@ -244,9 +244,9 @@ fn load_task(folder_path: &str) -> AppResult<Task> {
     Ok(serde_json::from_str(&raw)?)
 }
 
-/// Add a link / Notion / Figma / mcp / skill resource (already-described, no file copy).
+/// Add a link / Notion / Figma / mcp / skill / md context item (already-described, no file copy).
 #[tauri::command]
-pub async fn add_task_resource(
+pub async fn add_task_context(
     folder_path: String,
     kind: String,
     title: String,
@@ -255,13 +255,14 @@ pub async fn add_task_resource(
 ) -> AppResult<Task> {
     let mut task = load_task(&folder_path)?;
 
-    task.resources.push(Resource {
+    task.context.push(ContextItem {
         id: Uuid::new_v4().to_string(),
         kind,
         title,
         location,
         copied: None,
         note,
+        default_branch: None,
         added_at: Utc::now().to_rfc3339(),
     });
     task.updated_at = Utc::now().to_rfc3339();
@@ -270,11 +271,11 @@ pub async fn add_task_resource(
     Ok(task)
 }
 
-/// Add a local file/folder resource, optionally copying it into the task folder.
-/// When `copy` is true the file is duplicated under `<task>/resources/` and the
+/// Add a local file/folder context item, optionally copying it into the task folder.
+/// When `copy` is true the file is duplicated under `<task>/context/` and the
 /// stored location points at the copy; otherwise the original path is referenced.
 #[tauri::command]
-pub async fn add_file_resource(
+pub async fn add_file_context(
     folder_path: String,
     src_path: String,
     copy: bool,
@@ -289,7 +290,7 @@ pub async fn add_file_resource(
         .unwrap_or_else(|| src_path.clone());
 
     let location = if copy {
-        let dest_dir = PathBuf::from(&folder_path).join("resources");
+        let dest_dir = PathBuf::from(&folder_path).join("context");
         fs::create_dir_all(&dest_dir)?;
         let dest = dest_dir.join(&name);
         if is_dir {
@@ -302,13 +303,22 @@ pub async fn add_file_resource(
         src_path.clone()
     };
 
-    task.resources.push(Resource {
+    let kind = if is_dir {
+        "folder"
+    } else if name.to_lowercase().ends_with(".md") {
+        "md"
+    } else {
+        "file"
+    };
+
+    task.context.push(ContextItem {
         id: Uuid::new_v4().to_string(),
-        kind: if is_dir { "folder".to_string() } else { "file".to_string() },
+        kind: kind.to_string(),
         title: name,
         location,
         copied: Some(copy),
         note: None,
+        default_branch: None,
         added_at: Utc::now().to_rfc3339(),
     });
     task.updated_at = Utc::now().to_rfc3339();
@@ -318,16 +328,16 @@ pub async fn add_file_resource(
 }
 
 #[tauri::command]
-pub async fn remove_task_resource(
+pub async fn remove_task_context(
     folder_path: String,
-    resource_id: String,
+    context_id: String,
 ) -> AppResult<Task> {
     let mut task = load_task(&folder_path)?;
 
-    // If the resource was copied into the task folder, delete the copy too.
-    if let Some(res) = task.resources.iter().find(|r| r.id == resource_id) {
-        if res.copied == Some(true) {
-            let p = PathBuf::from(&res.location);
+    // If the item was copied into the task folder, delete the copy too.
+    if let Some(item) = task.context.iter().find(|c| c.id == context_id) {
+        if item.copied == Some(true) {
+            let p = PathBuf::from(&item.location);
             if p.starts_with(&task.folder_path) && p.exists() {
                 if p.is_dir() {
                     let _ = fs::remove_dir_all(&p);
@@ -338,7 +348,7 @@ pub async fn remove_task_resource(
         }
     }
 
-    task.resources.retain(|r| r.id != resource_id);
+    task.context.retain(|c| c.id != context_id);
     task.updated_at = Utc::now().to_rfc3339();
 
     write_task_json(&task)?;

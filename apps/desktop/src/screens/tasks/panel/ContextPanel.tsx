@@ -1,30 +1,43 @@
 import { useEffect, useState } from "react";
 import { Layers, FolderTree } from "lucide-react";
 import clsx from "clsx";
-import type { FileNode, Resource, Task } from "@contextual/types";
+import type { ContextItem, FileNode, Task } from "@contextual/types";
 import * as commands from "../../../lib/commands";
-import { ResourceList } from "./ResourceList";
+import { ContextList } from "./ContextList";
 import { FileTree } from "./FileTree";
 
-export type PanelTab = "resources" | "files";
+export type PanelTab = "context" | "files";
 
 export interface Selection {
-  type: "resource" | "file";
-  resource?: Resource;
+  type: "context" | "file";
+  item?: ContextItem;
+  /** Whether a selected context item is org- or task-level. */
+  scope?: "org" | "task";
   file?: FileNode;
 }
 
-interface ResourcePanelProps {
+interface ContextPanelProps {
   task: Task;
+  /** Organization-level context, shared across all tasks. */
+  orgContext: ContextItem[];
   selection?: Selection;
   onSelect: (sel: Selection) => void;
-  onAddResource: () => void;
+  onAddTaskContext: () => void;
+  onAddOrgContext: () => void;
   /** Bumped by the parent to force a file-tree refresh after changes. */
   refreshKey: number;
 }
 
-export function ResourcePanel({ task, selection, onSelect, onAddResource, refreshKey }: ResourcePanelProps) {
-  const [tab, setTab] = useState<PanelTab>("resources");
+export function ContextPanel({
+  task,
+  orgContext,
+  selection,
+  onSelect,
+  onAddTaskContext,
+  onAddOrgContext,
+  refreshKey,
+}: ContextPanelProps) {
+  const [tab, setTab] = useState<PanelTab>("context");
   const [files, setFiles] = useState<FileNode[]>([]);
 
   useEffect(() => {
@@ -36,23 +49,38 @@ export function ResourcePanel({ task, selection, onSelect, onAddResource, refres
     return () => { alive = false; };
   }, [tab, task.folderPath, refreshKey]);
 
+  const selectedContextId =
+    selection?.type === "context" ? selection.item?.id : undefined;
+
   return (
     <div className="flex flex-col h-full border-r border-border w-72 shrink-0 bg-bg">
       {/* Tabs */}
       <div className="flex shrink-0 border-b border-border">
-        <TabButton active={tab === "resources"} onClick={() => setTab("resources")} icon={<Layers size={13} />} label="Resources" />
+        <TabButton active={tab === "context"} onClick={() => setTab("context")} icon={<Layers size={13} />} label="Context" />
         <TabButton active={tab === "files"} onClick={() => setTab("files")} icon={<FolderTree size={13} />} label="Files" />
       </div>
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto">
-        {tab === "resources" ? (
-          <ResourceList
-            resources={task.resources ?? []}
-            selectedId={selection?.type === "resource" ? selection.resource?.id : undefined}
-            onSelect={(resource) => onSelect({ type: "resource", resource })}
-            onAdd={onAddResource}
-          />
+        {tab === "context" ? (
+          <>
+            <ContextList
+              heading="Organization"
+              items={orgContext}
+              selectedId={selection?.scope === "org" ? selectedContextId : undefined}
+              onSelect={(item) => onSelect({ type: "context", item, scope: "org" })}
+              onAdd={onAddOrgContext}
+              emptyHint="No shared context yet. Add repos, files, or configs available to every task."
+            />
+            <div className="border-t border-border" />
+            <ContextList
+              heading="This task"
+              items={task.context ?? []}
+              selectedId={selection?.scope === "task" ? selectedContextId : undefined}
+              onSelect={(item) => onSelect({ type: "context", item, scope: "task" })}
+              onAdd={onAddTaskContext}
+            />
+          </>
         ) : (
           <FileTree
             nodes={files}

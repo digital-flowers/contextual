@@ -1,18 +1,24 @@
 import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { X } from "lucide-react";
-import type { ResourceKind, Task } from "@contextual/types";
+import type { ContextItem, ContextKind } from "@contextual/types";
 import { Button } from "../../../components/ui/Button";
-import * as commands from "../../../lib/commands";
-import { RESOURCE_META } from "./resourceMeta";
+import { CONTEXT_META } from "./contextMeta";
 
-interface AddResourceDialogProps {
-  task: Task;
+/** A described (non-file) item the dialog produces, minus id/addedAt. */
+export type NewContextItem = Omit<ContextItem, "id" | "addedAt">;
+
+interface AddContextDialogProps {
+  /** Where the context is being added, for the title. */
+  scopeLabel: string;
   onClose: () => void;
-  onAdded: (task: Task) => void;
+  /** Add a described item (link/notion/figma/mcp/skill/repo). */
+  onAddItem: (item: NewContextItem) => Promise<void> | void;
+  /** Copy/reference a local file or folder. Omit to hide that option (e.g. when no copy target). */
+  onAddFile?: (srcPath: string, copy: boolean) => Promise<void> | void;
 }
 
-type Mode = "pick" | ResourceKind;
+type Mode = "pick" | ContextKind;
 
 const ONLINE_FIELDS: Record<"link" | "notion" | "figma", { urlLabel: string; placeholder: string }> = {
   link: { urlLabel: "URL", placeholder: "https://…" },
@@ -20,17 +26,16 @@ const ONLINE_FIELDS: Record<"link" | "notion" | "figma", { urlLabel: string; pla
   figma: { urlLabel: "Figma URL", placeholder: "https://www.figma.com/file/…" },
 };
 
-export function AddResourceDialog({ task, onClose, onAdded }: AddResourceDialogProps) {
+export function AddContextDialog({ scopeLabel, onClose, onAddItem, onAddFile }: AddContextDialogProps) {
   const [mode, setMode] = useState<Mode>("pick");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function run<T>(fn: () => Promise<T>) {
+  async function run<T>(fn: () => Promise<T> | T) {
     setBusy(true);
     setError(null);
     try {
-      const result = await fn();
-      return result;
+      return await fn();
     } catch (e) {
       setError(String(e));
       throw e;
@@ -46,7 +51,7 @@ export function AddResourceDialog({ task, onClose, onAdded }: AddResourceDialogP
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-          <h2 className="text-sm font-semibold text-text">Add resource</h2>
+          <h2 className="text-sm font-semibold text-text">Add {scopeLabel} context</h2>
           <button onClick={onClose} className="text-muted hover:text-text"><X size={16} /></button>
         </div>
 
@@ -55,41 +60,44 @@ export function AddResourceDialog({ task, onClose, onAdded }: AddResourceDialogP
 
           {mode === "pick" && (
             <div className="grid grid-cols-2 gap-2">
-              {(Object.keys(RESOURCE_META) as ResourceKind[])
-                .filter((k) => k !== "file" && k !== "folder")
-                .map((kind) => {
-                  const meta = RESOURCE_META[kind];
-                  const Icon = meta.icon;
-                  return (
-                    <button
-                      key={kind}
-                      onClick={() => setMode(kind)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-md text-xs text-text bg-bg hover:bg-border/40 transition-colors"
-                      style={{ border: "1px solid var(--color-border)" }}
-                    >
-                      <Icon size={14} className="text-accent" />
-                      {meta.label}
-                    </button>
-                  );
-                })}
-              <FilePickRow
-                label="Local file or folder"
+              {(["link", "notion", "figma", "mcp", "skill"] as ContextKind[]).map((kind) => {
+                const meta = CONTEXT_META[kind];
+                const Icon = meta.icon;
+                return (
+                  <button
+                    key={kind}
+                    onClick={() => setMode(kind)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-md text-xs text-text bg-bg hover:bg-border/40 transition-colors"
+                    style={{ border: "1px solid var(--color-border)" }}
+                  >
+                    <Icon size={14} className="text-accent" />
+                    {meta.label}
+                  </button>
+                );
+              })}
+              <RepoPickButton
                 busy={busy}
-                onPick={async (copy) => {
-                  const selected = await open({ multiple: false, directory: false, title: "Choose a file" });
-                  if (typeof selected !== "string") return;
-                  const updated = await run(() => commands.addFileResource(task.folderPath, selected, copy));
-                  onAdded(updated);
-                  onClose();
-                }}
-                onPickFolder={async (copy) => {
-                  const selected = await open({ multiple: false, directory: true, title: "Choose a folder" });
-                  if (typeof selected !== "string") return;
-                  const updated = await run(() => commands.addFileResource(task.folderPath, selected, copy));
-                  onAdded(updated);
+                onPick={async (path, defaultBranch) => {
+                  const name = path.split("/").filter(Boolean).at(-1) ?? path;
+                  await run(() => onAddItem({ kind: "repo", title: name, location: path, defaultBranch }));
                   onClose();
                 }}
               />
+              {onAddFile && (
+                <FilePickRow
+                  busy={busy}
+                  onPick={async (directory, copy) => {
+                    const selected = await open({
+                      multiple: false,
+                      directory,
+                      title: directory ? "Choose a folder" : "Choose a file",
+                    });
+                    if (typeof selected !== "string") return;
+                    await run(() => onAddFile(selected, copy));
+                    onClose();
+                  }}
+                />
+              )}
             </div>
           )}
 
@@ -99,8 +107,7 @@ export function AddResourceDialog({ task, onClose, onAdded }: AddResourceDialogP
               busy={busy}
               onBack={() => setMode("pick")}
               onSubmit={async (title, url) => {
-                const updated = await run(() => commands.addTaskResource(task.folderPath, mode, title, url));
-                onAdded(updated);
+                await run(() => onAddItem({ kind: mode, title, location: url }));
                 onClose();
               }}
             />
@@ -112,8 +119,7 @@ export function AddResourceDialog({ task, onClose, onAdded }: AddResourceDialogP
               busy={busy}
               onBack={() => setMode("pick")}
               onSubmit={async (name, note) => {
-                const updated = await run(() => commands.addTaskResource(task.folderPath, mode, name, name, note || undefined));
-                onAdded(updated);
+                await run(() => onAddItem({ kind: mode, title: name, location: name, note: note || undefined }));
                 onClose();
               }}
             />
@@ -124,31 +130,57 @@ export function AddResourceDialog({ task, onClose, onAdded }: AddResourceDialogP
   );
 }
 
-function FilePickRow({
-  label,
-  busy,
-  onPick,
-  onPickFolder,
-}: {
-  label: string;
-  busy: boolean;
-  onPick: (copy: boolean) => void;
-  onPickFolder: (copy: boolean) => void;
-}) {
+function RepoPickButton({ busy, onPick }: { busy: boolean; onPick: (path: string, branch: string) => void }) {
+  const [path, setPath] = useState<string | null>(null);
+  const [branch, setBranch] = useState("main");
+
+  async function choose() {
+    const selected = await open({ multiple: false, directory: true, title: "Choose a repository folder" });
+    if (typeof selected === "string") setPath(selected);
+  }
+
+  if (!path) {
+    return (
+      <div className="col-span-2 mt-1">
+        <Button size="sm" variant="ghost" className="w-full justify-center" disabled={busy} onClick={choose}>
+          Add repository…
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="col-span-2 mt-1 space-y-2">
+      <p className="text-xs font-mono text-muted truncate">{path}</p>
+      <div className="flex items-center gap-2">
+        <input
+          className={inputCls}
+          value={branch}
+          onChange={(e) => setBranch(e.target.value)}
+          placeholder="default branch"
+        />
+        <Button size="sm" variant="primary" disabled={busy || !branch.trim()} onClick={() => onPick(path, branch.trim())}>
+          Add
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function FilePickRow({ busy, onPick }: { busy: boolean; onPick: (directory: boolean, copy: boolean) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="col-span-2 mt-1">
-      <p className="text-[10px] uppercase tracking-wide text-muted/70 mb-1.5">{label}</p>
+      <p className="text-[10px] uppercase tracking-wide text-muted/70 mb-1.5">Local file or folder</p>
       {!open ? (
         <Button size="sm" variant="ghost" className="w-full justify-center" disabled={busy} onClick={() => setOpen(true)}>
           Choose file / folder…
         </Button>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          <Button size="sm" variant="ghost" disabled={busy} onClick={() => onPick(true)}>Copy file in</Button>
-          <Button size="sm" variant="ghost" disabled={busy} onClick={() => onPick(false)}>Reference file</Button>
-          <Button size="sm" variant="ghost" disabled={busy} onClick={() => onPickFolder(true)}>Copy folder in</Button>
-          <Button size="sm" variant="ghost" disabled={busy} onClick={() => onPickFolder(false)}>Reference folder</Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => onPick(false, true)}>Copy file in</Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => onPick(false, false)}>Reference file</Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => onPick(true, true)}>Copy folder in</Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => onPick(true, false)}>Reference folder</Button>
         </div>
       )}
     </div>
@@ -177,7 +209,7 @@ function OnlineForm({
     <div className="space-y-3">
       <div>
         <label className="block text-[10px] uppercase tracking-wide text-muted/70 mb-1">Title</label>
-        <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={`${RESOURCE_META[kind].label} name`} autoFocus />
+        <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={`${CONTEXT_META[kind].label} name`} autoFocus />
       </div>
       <div>
         <label className="block text-[10px] uppercase tracking-wide text-muted/70 mb-1">{fields.urlLabel}</label>

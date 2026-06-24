@@ -26,9 +26,9 @@ pub fn run() {
             update_task_status,
             delete_task,
             add_task_note,
-            add_task_resource,
-            add_file_resource,
-            remove_task_resource,
+            add_task_context,
+            add_file_context,
+            remove_task_context,
             // fs
             list_task_files,
             read_file_preview,

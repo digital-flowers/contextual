@@ -1,26 +1,29 @@
 import { useState } from "react";
-import { X, GitFork, Ticket, Settings } from "lucide-react";
+import { X, Layers, Ticket, Settings } from "lucide-react";
 import clsx from "clsx";
-import type { ContextualConfig } from "@contextual/types";
-import { ReposScreen } from "../../screens/repos/ReposScreen";
+import type { ContextualConfig, Preferences } from "@contextual/types";
+import { OrgContextScreen } from "../../screens/context/OrgContextScreen";
 import { TicketsScreen } from "../../screens/tickets/TicketsScreen";
 import { SettingsScreen } from "../../screens/settings/SettingsScreen";
 
-type Tab = "repos" | "tickets" | "settings";
+type Tab = "context" | "tickets" | "settings";
 
 interface ProjectSettingsProps {
   config: ContextualConfig;
+  onConfigChange: (config: ContextualConfig) => void;
+  preferences: Preferences;
+  onPreferencesChange: (patch: Partial<Preferences>) => void;
   onClose: () => void;
 }
 
-const tabs: { id: Tab; label: string; icon: typeof GitFork }[] = [
-  { id: "repos", label: "Repos", icon: GitFork },
+const tabs: { id: Tab; label: string; icon: typeof Layers }[] = [
+  { id: "context", label: "Context", icon: Layers },
   { id: "tickets", label: "Tickets", icon: Ticket },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-export function ProjectSettings({ config, onClose }: ProjectSettingsProps) {
-  const [tab, setTab] = useState<Tab>("repos");
+export function ProjectSettings({ config, onConfigChange, preferences, onPreferencesChange, onClose }: ProjectSettingsProps) {
+  const [tab, setTab] = useState<Tab>("context");
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -66,9 +69,17 @@ export function ProjectSettings({ config, onClose }: ProjectSettingsProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-auto">
-          {tab === "repos" && <ReposScreen repos={config.repos} />}
+          {tab === "context" && (
+            <OrgContextScreen config={config} onConfigChange={onConfigChange} />
+          )}
           {tab === "tickets" && <TicketsScreen />}
-          {tab === "settings" && <SettingsScreen config={config} />}
+          {tab === "settings" && (
+            <SettingsScreen
+              config={config}
+              preferences={preferences}
+              onPreferencesChange={onPreferencesChange}
+            />
+          )}
         </div>
       </div>
     </div>

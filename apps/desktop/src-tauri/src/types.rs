@@ -9,22 +9,6 @@ pub struct RepoConfig {
     pub default_branch: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct IDEConfig {
-    #[serde(rename = "type")]
-    pub ide_type: String,
-    pub custom_path: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Preferences {
-    pub ide: IDEConfig,
-    pub shell: String,
-    pub theme: String,
-}
-
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -55,10 +39,10 @@ pub struct MCPConfig {
 #[serde(rename_all = "camelCase")]
 pub struct ContextualConfig {
     pub name: String,
-    pub repos: Vec<RepoConfig>,
+    #[serde(default)]
+    pub context: Vec<ContextItem>,
     pub integrations: HashMap<String, serde_json::Value>,
     pub mcp: MCPConfig,
-    pub preferences: Preferences,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -104,7 +88,7 @@ pub struct ContextNote {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Resource {
+pub struct ContextItem {
     pub id: String,
     pub kind: String,
     pub title: String,
@@ -113,6 +97,8 @@ pub struct Resource {
     pub copied: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_branch: Option<String>,
     pub added_at: String,
 }
 
@@ -127,7 +113,7 @@ pub struct Task {
     pub status: String,
     pub notes: Vec<ContextNote>,
     #[serde(default)]
-    pub resources: Vec<Resource>,
+    pub context: Vec<ContextItem>,
     pub created_at: String,
     pub updated_at: String,
 }
